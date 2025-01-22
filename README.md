@@ -88,7 +88,7 @@ visuals.graphviz_tree(
 
 In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_:
 
-.. code:: python
+```python
 
     from sklearn.pipeline import Pipeline
     from sklearn.preprocessing import StandardScaler
@@ -99,11 +99,11 @@ In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklea
     ])
 
     pipe.fit(X, y)
-    y_proba = pipe.predict_proba(X)
+    y_proba = pipe.predict_proba(X)```
 
 
 ## How to cite Zuffy
-Authors of scientific papers including results generated using Zuffy are encouraged to cite the following paper.
+Authors of scientific papers including results generated using Zuffy are asked to cite the following paper.
 
 ```xml
 @article{ZUFFY_1, 

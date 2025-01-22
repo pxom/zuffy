@@ -77,3 +77,6 @@ target/
 
 # auto-generated files
 skltemplate/_version.py
+
+# pom Jupyter notebooks
+.ipynb_checkpoints/

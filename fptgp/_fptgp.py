@@ -22,7 +22,8 @@ from sklearn.utils.validation import check_is_fitted
 try:
     from sklearn.utils.validation import validate_data # when running on ubuntu with scikit-learn >= 1.6.0
 except ImportError:
-    print('could not import sklearn.utils.validation.validate_data because it is not available. scikit-learn is probably <1.6.0')
+    #print('could not import sklearn.utils.validation.validate_data because it is not available. scikit-learn is probably <1.6.0')
+    pass
 
 
 from gplearn.functions import _Function

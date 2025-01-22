@@ -297,7 +297,7 @@ def graphviz_tree(
     #print(out)
     graph = graphviz.Source(out)
     _ = graph.render(outputFilename, format='png', view=False, cleanup=True)
-    return out
+    return out, graph
 
 @validate_params( 
     {
