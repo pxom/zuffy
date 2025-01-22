@@ -1,4 +1,4 @@
-<table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="assets/zuffy_logo_small.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
+<table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="assets/zuffy_logo_small_nb.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
 
 
 ## A Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
@@ -17,54 +17,40 @@ genetic programming techniques.
 Refer to the documentation for further information.
 
 ## Setup
+
+#### Dependencies:
+* sklearn     1.5.2 
+* numpy       1.26.4
+* pandas      2.2.1
+* gplearn     0.4.2
+* matplotlib  3.9.2
+
 To set up:
 * pip install pandas
-* pip install scikit-learn # not 1.6.1 - developed on windows with 1.4.1.post1.
+* pip install scikit-learn==1.5.2
+* pip install gplearn  # version 0.4.2
+* pip install matplotlib
+* pip install graphviz
+* sudo apt install graphviz
 
-    pip uninstall scikit-learn
-    administrator@lt-tishdevt:/mnt/code$ 
-        pip install scikit-learn-1-4-1.post1.
-        Defaulting to user installation because normal site-packages is not writeable
-        ERROR: Invalid requirement: 'scikit-learn-1-4-1.post1.'
+Note: Scikit-learn version 1.6 modified the API around its "tags", and that's the cause of this error.
 
-        Scikit-learn version 1.6 modified the API around its "tags", and that's the cause of this error.
-        
-        pip index versions scikit-learn
-        pip uninstall scikit-learn
+## Resources
 
+- `Documentation <https://zuffy.readthedocs.io/en/latest/?badge=latest>`_
+- `Source Code <https://github.com/zuffy-dev/zuffy/>`_
+- `Installation <https://github.com/zuffy-dev/zuffy#installation>`_
 
-        # set up remote installer
-        python3 -m pip install --upgrade debugpy
-
-        sudo pip install matplotlib --user
-
-
-pip install gplearn  # version 0.4.2
-pip install matplotlib
-pip install graphviz
-
-
-=========
-Resources
-=========
-
-- `Documentation <https://skorch.readthedocs.io/en/latest/?badge=latest>`_
-- `Source Code <https://github.com/skorch-dev/skorch/>`_
-- `Installation <https://github.com/skorch-dev/skorch#installation>`_
-
-========
-Examples
-========
+## Examples
 
 To see more elaborate examples, look `here
-<https://github.com/skorch-dev/skorch/tree/master/notebooks/README.md>`__.
+<https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>`__.
 
 .. code:: python
 
     import numpy as np
     from sklearn.datasets import make_classification
     from torch import nn
-    from skorch import NeuralNetClassifier
 
     X, y = make_classification(1000, 20, n_informative=10, random_state=0)
     X = X.astype(np.float32)
