@@ -1,5 +1,6 @@
-![Zuffy Logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png?raw=true)
-[logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png) "Why are you hovering? Go for it!"
+![Zuffy Logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo_small.png)
+
+<!-- [logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png) "Why are you hovering? Go for it!" -->
 
 Zuffy - Fuzzy Pattern Trees with Genetic Programming
 ====================================================
