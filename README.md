@@ -50,47 +50,40 @@ sudo apt install graphviz
 
 ## Examples
 
-To see more elaborate examples, look `here
-<https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>`__.
+To see more elaborate examples, look `here <https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>`__.
+
 
 ```python
 
-    import numpy as np
-    from sklearn.datasets import make_classification
-    from torch import nn
+import pandas as pd
+from sklearn.datasets import load_iris
+from fptgp.fptgp import FPTGPClassifier, functions, visuals
+from fptgp.fptgp.wrapper import FPTGP_fit_iterator
 
-    X, y = make_classification(1000, 20, n_informative=10, random_state=0)
-    X = X.astype(np.float32)
-    y = y.astype(np.int64)
+iris = load_iris()
+dataset = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+dataset['target'] = iris.target
+targetNames = iris.target_names
+X = dataset.iloc[:,0:-1]
+y = dataset.iloc[:,-1]
 
-    class MyModule(nn.Module):
-        def __init__(self, num_units=10, nonlin=nn.ReLU()):
-            super().__init__()
+fuzzy_X, fuzzy_features_names = functions.fuzzify_data(X)
 
-            self.dense0 = nn.Linear(20, num_units)
-            self.nonlin = nonlin
-            self.dropout = nn.Dropout(0.5)
-            self.dense1 = nn.Linear(num_units, num_units)
-            self.output = nn.Linear(num_units, 2)
-            self.softmax = nn.Softmax(dim=-1)
+fptgp = FPTGPClassifier(generations=15, verbose=1)
+res = FPTGP_fit_iterator(fptgp, fuzzy_X, y, n_iter=3, split_at=0.25, random_state=77)
 
-        def forward(self, X, **kwargs):
-            X = self.nonlin(self.dense0(X))
-            X = self.dropout(X)
-            X = self.nonlin(self.dense1(X))
-            X = self.softmax(self.output(X))
-            return X
+visuals.plot_evolution(
+    res.getBestEstimator(),
+    targetNames,
+    res.getPerformance(),
+    outputFilename='sample1_analysis')
 
-    net = NeuralNetClassifier(
-        MyModule,
-        max_epochs=10,
-        lr=0.1,
-        # Shuffle training data on each epoch
-        iterator_train__shuffle=True,
-    )
-
-    net.fit(X, y)
-    y_proba = net.predict_proba(X)
+visuals.graphviz_tree(
+    res.getBestEstimator(),
+    targetNames,
+    featureNames=fuzzy_features_names,
+    treeName="Iris Dataset (best accuracy: " + str(round(res.getBestScore(),3)) + ")",
+    outputFilename='sample1')
 ```
 
 In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_:
@@ -109,4 +102,3 @@ In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklea
     y_proba = pipe.predict_proba(X)
 
 
-*Thank you for cleanly contributing to the scikit-learn ecosystem!*

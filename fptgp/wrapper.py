@@ -30,7 +30,7 @@ def verbose_out(fptgp: object, *msg: str) -> None:
     prefer_skip_nested_validation=True
 )
 class FPTGP_fit_iterator:
-    performance = {'bang':'bip'}
+    performance = None
     best_est = None
     best_score = None
 
@@ -54,7 +54,7 @@ class FPTGP_fit_iterator:
         return self.best_score
     
     def getPerformance(self):
-        return self.performance
+        return self.iter_perf
     
 @validate_params( 
     {

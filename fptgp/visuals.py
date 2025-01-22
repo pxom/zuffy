@@ -245,7 +245,7 @@ def graphviz_tree(
         featureNames = fptgp.estimator.feature_names
 
     featureNames = sanitize_names(featureNames)
-    if targetNames and len(list(targetNames))>0:  # this allows for both numpy array and list
+    if targetNames is not None and len(list(targetNames))>0:  # this allows for both numpy array and list
         if len(targetNames) < len(fptgp.estimators_):
             raise ValueError(f'There are insufficient targetNames ({len(targetNames)}) supplied to represent each of the {len(fptgp.estimators_)} classes.')
         else:
@@ -303,14 +303,14 @@ def graphviz_tree(
     {
     "model":            [HasMethods("fit")],
     "target_classes":   [None, "array-like"],
-    "outputFilename": [None, str],
+    "outputFilename":   [None, str],
     "iter_perf":        [None, list],
     }, 
     prefer_skip_nested_validation=True
 )
 def plot_evolution(model, target_classes=None, iter_perf=None, outputFilename=None):
 
-    if target_classes:
+    if target_classes is not None:
         if len(target_classes) < len(model.estimators_):
             raise ValueError(f'There are insufficient targetNames ({len(target_classes)}) supplied to represent each of the {len(model.estimators_)} classes.')
         else:
