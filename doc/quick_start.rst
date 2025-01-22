@@ -4,11 +4,13 @@
 Getting started
 ###############
 
-This package serves as a skeleton package aiding at developing compatible
-scikit-learn contribution.
+Dependencies:
+=============
+numpy       1.26.4
+pandas      2.2.1
+gplearn     0.4.2
+matplotlib  3.9.2
 
-Creating your own scikit-learn contribution package
-===================================================
 
 Download and setup your repository
 ----------------------------------
