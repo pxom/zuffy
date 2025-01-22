@@ -18,22 +18,29 @@ Refer to the documentation for further information.
 
 ## Setup
 
-#### Dependencies:
-* sklearn     1.5.2 
-* numpy       1.26.4
-* pandas      2.2.1
-* gplearn     0.4.2
-* matplotlib  3.9.2
+It may work with other versions but zuffy has been tested with these versions:
 
-To set up:
-* pip install pandas
-* pip install scikit-learn==1.5.2
-* pip install gplearn  # version 0.4.2
-* pip install matplotlib
-* pip install graphviz
-* sudo apt install graphviz
+  Library    | Version  |
+| ---------- | :------: |
+| sklearn    | 1.5.2*   |
+| numpy      | 1.26.4   |
+| pandas     | 2.2.1    |
+| matplotlib | 3.9.2    |
+| gplearn    | 0.4.2    |
 
-Note: Scikit-learn version 1.6 modified the API around its "tags", and that's the cause of this error.
+Note that Scikit-learn version 1.6+ modified the API around its "tags" and, until the authors update all their estimators, zuffy will not run with version 1.6+.
+
+To display the FPT you will need to install graphviz:
+
+##### Unix
+```bash 
+$ sudo apt install graphviz
+```
+
+> $ sudo apt install graphviz
+
+##### Windows
+???
 
 ## Resources
 
@@ -46,7 +53,7 @@ Note: Scikit-learn version 1.6 modified the API around its "tags", and that's th
 To see more elaborate examples, look `here
 <https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>`__.
 
-.. code:: python
+```python
 
     import numpy as np
     from sklearn.datasets import make_classification
@@ -84,6 +91,7 @@ To see more elaborate examples, look `here
 
     net.fit(X, y)
     y_proba = net.predict_proba(X)
+```
 
 In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_:
 
