@@ -1,12 +1,7 @@
-![Zuffy Logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo_small.png)
-
-<!-- [logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png) "Why are you hovering? Go for it!" -->
-
-Zuffy - Fuzzy Pattern Trees with Genetic Programming
+<img style="float:left;padding-right:20px" src="assets/zuffy_logo_small.png" alt="Zuffy Logo" width="80"/>Zuffy - Fuzzy Pattern Trees with Genetic Programming
 ====================================================
 Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
 ------------------------------------------------------------------------------------------
-
 <!-- 
 ![tests](https://github.com/scikit-learn-contrib/project-template/actions/workflows/python-app.yml/badge.svg)
 [![codecov](https://codecov.io/gh/scikit-learn-contrib/project-template/graph/badge.svg?token=L0XPWwoPLw)](https://codecov.io/gh/scikit-learn-contrib/project-template)
