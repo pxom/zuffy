@@ -1,4 +1,6 @@
-![doc](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png)
+![Zuffy Logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png?raw=true)
+[logo](https://github.com/pxom/fptgp/blob/master/assets/zuffy_logo.png) "Why are you hovering? Go for it!"
+
 Zuffy - Fuzzy Pattern Trees with Genetic Programming
 ====================================================
 Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
@@ -17,9 +19,11 @@ genetic programming techniques.
 
 Refer to the documentation for further information.
 
+## Setup
 To set up:
-pip install pandas
-pip install scikit-learn # not 1.6.1 - developed on windows with 1.4.1.post1.
+* pip install pandas
+* pip install scikit-learn # not 1.6.1 - developed on windows with 1.4.1.post1.
+
     pip uninstall scikit-learn
     administrator@lt-tishdevt:/mnt/code$ 
         pip install scikit-learn-1-4-1.post1.
