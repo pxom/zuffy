@@ -1,6 +1,6 @@
-<img style="float:left;padding-right:20px" src="assets/zuffy_logo_small.png" alt="Zuffy Logo" width="80"/>Zuffy - Fuzzy Pattern Trees with Genetic Programming
+<img style="float:left;padding-right:20px;vertical-align:top" src="assets/zuffy_logo_small.png" alt="Zuffy Logo" width="80"/>Zuffy - Fuzzy Pattern Trees with Genetic Programming
 ====================================================
-Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
+A Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
 ------------------------------------------------------------------------------------------
 <!-- 
 ![tests](https://github.com/scikit-learn-contrib/project-template/actions/workflows/python-app.yml/badge.svg)
