@@ -71,11 +71,11 @@ def fuzzify_col(col: np.array, feature_name: str, info: bool = False, tags: list
         print(f"{feature_name} => {min} < {mid} < {max} ", end = ' ')
     return [lo,md,hi], new_feature_names
 
-def fuzzify_data(data: pd.DataFrame, non_fuzzy: list = [], info: bool = False, tags: list[str] = None):
+def fuzzify_data(data: pd.DataFrame, non_fuzzy: list = [], info: bool = False, tags: list[str] = ['low', 'med', 'high']):
     if type(data) != pd.DataFrame:
         raise ValueError("The 'data' parameter is not a valid Pandas DataFrame")
+    
     fuzzy_X = None
-    #for col, feature_name in zip(data.columns, crisp_features):
     fuzzy_feature_names = []
     for feature_name in data.columns:
         #res = np.transpose(fuzzify_col(np.array(data[col]), feature_name, info=False))
@@ -94,7 +94,7 @@ def fuzzify_data(data: pd.DataFrame, non_fuzzy: list = [], info: bool = False, t
             # the label matching the original value
             # e.g. cap-size=G, cap-size=R
             if 1:
-                res = pd.get_dummies(data[feature_name],prefix=feature_name)
+                res = pd.get_dummies(data[feature_name],prefix=f"{feature_name}",prefix_sep='= ')
                 res = res.astype(int) # convert True/False to 1/0
                 fuzzy_feature_names.append(list(res.columns))
             else:
@@ -139,11 +139,27 @@ def fuzzy_feature_names(flist: list[str], tags: list[str]) -> list[str]:
                 new_features.append(tag + ' ' + f)
     return new_features
 
-def convert_to_numeric(my_data: pd.DataFrame, target):
+def convert_to_numeric(df: pd.DataFrame, target):
+    '''
+    This converts the values in the target column into integers and
+    returns a list of the original values prior to conversion.
+    '''
     le = LabelEncoder()
-    my_data[target] = le.fit_transform(my_data[target])
-    target_classes = le.classes_
+    df[target] = le.fit_transform(df[target])
+    #target_classes = le.classes_
     #for colname, type in zip(my_data.columns,my_data.dtypes):
     #    print(f"{colname} is {type.name}")
-    return target_classes, my_data
+    return le.classes_, df
+
+def convert_to_numeric2(df: pd.DataFrame): # single column
+    '''
+    This converts the values in the target column into integers and
+    returns a list of the original values prior to conversion.
+    '''
+    le = LabelEncoder()
+    df = le.fit_transform(df)
+    #target_classes = le.classes_
+    #for colname, type in zip(my_data.columns,my_data.dtypes):
+    #    print(f"{colname} is {type.name}")
+    return le.classes_, df
 

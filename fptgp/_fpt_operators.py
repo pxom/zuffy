@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-@author: Peter O'Mahony
+@author: Peter O'Mahony <fptgp@mahoonium.com>
+License: BSD 3 clause
 This module contains the default set of FPT operators.
 """
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from gplearn import functions
 
@@ -55,13 +57,13 @@ def minimum(a, b):
 def maximum(a, b):
     return np.maximum(a, b)
     
-def dilator(b):
+def DILUTER(b):
     return b**0.5
 
-def dilator3(b):
+def DILUTER3(b):
     return b**(1/3)
 
-def dilator4(b):
+def DILUTER4(b):
     return b**0.25
 
 def concentrator(b):
@@ -96,7 +98,6 @@ MINIMUM = functions.make_function(function=_MINIMUM,
                         name='MINIMUM/and',
                         arity=2)
 
-
 def _COMPLEMENT(x0):
     return 1 - x0
 
@@ -104,24 +105,24 @@ COMPLEMENT = functions.make_function(function=_COMPLEMENT,
                         name='COMPLEMENT/not',
                         arity=1)
 
-def _CONCENTRATOR(x0):
+def _DILUTER(x0):
     """Closure of division by for zero denominator."""
     with np.errstate(divide='ignore', invalid='ignore'):
         return np.where(x0 < 0, 0, x0**0.5)
 
-CONCENTRATOR = functions.make_function(function=_CONCENTRATOR,
-                        name='CONCENTRATOR',
+DILUTER = functions.make_function(function=_DILUTER,
+                        name='DILUTER',
                         arity=1)
 
-def _CONCENTRATOR2(x0):
+def _DILUTER2(x0):
     """Closure of division by for zero denominator."""
     with np.errstate(divide='ignore', invalid='ignore'):
         return np.where(x0 < 0, 0, x0**0.25)
 
-CONCENTRATOR2 = functions.make_function(function=_CONCENTRATOR2,
-                        name='CONCENTRATOR2',
+DILUTER2 = functions.make_function(function=_DILUTER2,
+                        name='DILUTER2',
                         arity=1)
-
+'''
 def _CONCENTRATOR3(x0):
     """Closure of division by for zero denominator."""
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -148,20 +149,58 @@ def _CONCENTRATOR8(x0):
 CONCENTRATOR8 = functions.make_function(function=_CONCENTRATOR8,
                         name='CONCENTRATOR8',
                         arity=1)
+'''
 
-def _DILUTER(x0):
+def _CONCENTRATOR(x0):
     return x0**2
 
-DILUTER = functions.make_function(function=_DILUTER,
-                        name='DILUTER',
+CONCENTRATOR = functions.make_function(function=_CONCENTRATOR,
+                        name='CONCENTRATOR',
                         arity=1)
 
-def _DILUTER2(x0):
+def _CONCENTRATOR2(x0):
     return x0**4
 
-DILUTER2 = functions.make_function(function=_DILUTER2,
-                        name='DILUTER2',
+CONCENTRATOR2 = functions.make_function(function=_CONCENTRATOR2,
+                        name='CONCENTRATOR2',
                         arity=1)
+
+def _INTENSIFIER(x0): # from Expanding the definitions of linguistic hedges
+    """Closure of division by for zero denominator."""
+    with np.errstate(divide='ignore', invalid='ignore'):
+        n = 2
+        return np.where(
+                x0 < 0,
+                0,
+                np.where(x0 < 0.5,
+                         0.5**(1-n) * (x0**n),
+                         1 - 0.5**(1-n) * (1 - x0)**n
+                )
+        )
+
+INTENSIFIER = functions.make_function(function=_INTENSIFIER,
+                        name='INTENSIFIER',
+                        arity=1)
+
+
+def _DIFFUSER(x0): # from Expanding the definitions of linguistic hedges
+    n = 2
+    with np.errstate(divide='ignore', invalid='ignore'):
+        n = 2
+        return np.where(
+                x0 < 0,
+                0,
+                np.where(x0 < 0.5,
+                     0.5**(1 - 1/n) * x0**(1/n),
+                     1 - 0.5**(1-1/n) * (1 - x0)**(1/n)
+                )
+        )
+
+DIFFUSER = functions.make_function(function=_DIFFUSER,
+                        name='DIFFUSER',
+                        arity=1)
+
+
 
 def _SUB_AMT_025(x1):
     return x1 - 0.25
