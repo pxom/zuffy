@@ -34,7 +34,7 @@ To display the FPT you will need to install graphviz:
 
 ##### Unix
 ```bash 
-$ sudo apt install graphviz
+sudo apt install graphviz
 ```
 
 > $ sudo apt install graphviz
