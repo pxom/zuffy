@@ -50,7 +50,7 @@ sudo apt install graphviz
 
 ## Examples
 
-To see more elaborate examples, look `here <https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>`__.
+To see more elaborate examples, look [here](<https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>).
 
 
 ```python
@@ -102,3 +102,17 @@ In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklea
     y_proba = pipe.predict_proba(X)
 
 
+## How to cite Zuffy
+Authors of scientific papers including results generated using Zuffy are encouraged to cite the following paper.
+
+```xml
+@article{ZUFFY_1, 
+    author    = "Peter O'Mahony",
+    title     = { {Zuffy}: Open Source inference of FPT using GP },
+    pages    = { 0--0 },
+    volume    = { 1 },
+    month     = { Apr },
+    year      = { 2025 },
+    journal   = { Journal of Unknown }
+}
+```
