@@ -1,5 +1,5 @@
 """
-@author: Peter O'Mahony <fptgp@mahoonium.com>
+@author: Peter O'Mahony <zuffy@mahoonium.com>
 License: BSD 3 clause
 This module contains the default set of FPT operators.
 """

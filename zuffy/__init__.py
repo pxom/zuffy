@@ -6,11 +6,11 @@
 Initialisation module for FPTGP.
 """
 
-from ._fptgp import FPTGPClassifier
+from ._zuffy import ZuffyClassifier
 __version__ = '0.0.dev0'
 
 __all__ = [
-    "FPTGPClassifier",
+    "ZuffyClassifier",
     "functions",
     "visuals",
     "__version__",

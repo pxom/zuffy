@@ -1,11 +1,11 @@
 """
-@author: Peter O'Mahony <fptgp@mahoonium.com>
+@author: Peter O'Mahony <zuffy@mahoonium.com>
 License: BSD 3 clause
-This module contains the FPTGP Classifier and supporting methods and functions.
+This module contains the zuffy Classifier and supporting methods and functions.
 """
 
 #if __name__ == "__main__" and __package__ is None:
-#    __package__ = "fptgp.fptgp"
+#    __package__ = "zuffy.zuffy"
 #import sys    
 #print("In module products sys.path[0], __package__ ==", sys.path[0], __package__)
 
@@ -34,7 +34,7 @@ from ._fpt_operators import *
 
 # Note that the mixin class should always be on the left of `BaseEstimator` to ensure
 # the MRO works as expected.
-class FPTGPClassifier(ClassifierMixin, BaseEstimator):
+class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     """A Fuzzy Pattern Tree with Genetic Programming Classifier which uses gplearn to infer a FPT.
 
     Parameters

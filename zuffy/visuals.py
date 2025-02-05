@@ -1,5 +1,5 @@
 """
-@author: Peter O'Mahony <fptgp@mahoonium.com>
+@author: Peter O'Mahony <zuffy@mahoonium.com>
 License: BSD 3 clause
 Functions to handle the display of a FPT
 """
@@ -229,7 +229,7 @@ def graphviz_tree(
             featureNames=None,
             treeName=None,
             impFeat=None,
-            outputFilename='fptgp_output',
+            outputFilename='zuffy_output',
             bgColor='white',
             rootBGColor='grey',
             rootText='WTA',

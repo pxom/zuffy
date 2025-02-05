@@ -1,7 +1,7 @@
 """
-@author: Peter O'Mahony <fptgp@mahoonium.com>
+@author: Peter O'Mahony <zuffy@mahoonium.com>
 License: BSD 3 clause
-This module contains the FPTGP Wrappers and supporting methods and functions.
+This module contains the zuffy Wrappers and supporting methods and functions.
 """
 
 import time
@@ -32,7 +32,7 @@ def verbose_out(fptgp: object, *msg: str) -> None:
     }, 
     prefer_skip_nested_validation=True
 )
-class FPTGP_fit_iterator:
+class ZuffyFitIterator:
     performance = None
     best_est = None
     best_score = None
@@ -47,7 +47,7 @@ class FPTGP_fit_iterator:
         self.n_iter = n_iter
         self.split_at = split_at
         self.random_state = random_state
-        self.best_est, self.best_score, self.iter_perf = FPTGP_fit_iterator_OLD(fptgp, fuzzy_X, y, n_iter = n_iter, split_at=split_at, random_state=random_state)
+        self.best_est, self.best_score, self.iter_perf = ZuffyFitIterator_OLD(fptgp, fuzzy_X, y, n_iter = n_iter, split_at=split_at, random_state=random_state)
         #return self.best_est
 
     def getBestEstimator(self):
@@ -69,7 +69,7 @@ class FPTGP_fit_iterator:
     }, 
     prefer_skip_nested_validation=True
 )
-def FPTGP_fit_job(fptgp, fuzzy_X, y, split_at = 0.25, random_state=0):
+def ZuffyFitJob(fptgp, fuzzy_X, y, split_at = 0.25, random_state=0):
     X_train, X_test, y_train, y_test = train_test_split(fuzzy_X, y, test_size=split_at, random_state=random_state)
     res   = fptgp.fit(X_train, y_train)
     score = res.score(X_test,y_test)
@@ -107,7 +107,7 @@ def FPTGP_fit_job(fptgp, fuzzy_X, y, split_at = 0.25, random_state=0):
 
     return score, res, class_scores
 
-def FPTGP_fit_iterator_OLD(fptgp, fuzzy_X, y, n_iter = 10, split_at=0.2, random_state=0):
+def ZuffyFitIterator_OLD(fptgp, fuzzy_X, y, n_iter = 10, split_at=0.2, random_state=0):
     # now call the iter function to split and train the dataset n_iter times
 
     best_score = -np.inf
@@ -125,7 +125,7 @@ def FPTGP_fit_iterator_OLD(fptgp, fuzzy_X, y, n_iter = 10, split_at=0.2, random_
                 rs = random_state + iter
             else:
                 rs = random_state
-            score, est_gp, class_scores = FPTGP_fit_job(fptgp, fuzzy_X, y, split_at=split_at, random_state=rs)
+            score, est_gp, class_scores = ZuffyFitJob(fptgp, fuzzy_X, y, split_at=split_at, random_state=rs)
             sum_scores += score
             verbose_out(fptgp, f"{class_scores=}")
             # calculate the size of the model
