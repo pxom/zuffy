@@ -151,7 +151,7 @@ def sanitize_names(features_names: list[object]) -> list[str]:
         sanitised.append(html.escape(str(f)))
     return sanitised
 
-def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillColor='green', operator_col_fn=None, feature_col_fn=None, impFeat=None):
+def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillColor='green', operator_col_fn=OperatorColor(), feature_col_fn=FeatureColor(), impFeat=None):
     '''
     Returns a string, Graphviz script for visualizing the program.
 

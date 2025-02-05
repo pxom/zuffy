@@ -52,7 +52,7 @@ def test_template_classifier(data):
     X, y = data
     #clf = FPTGPClassifier(SymbolicClassifier())
     clf = FPTGPClassifier()
-    assert clf.demo_param == "const_range" # "demo"
+    assert clf.const_range == FPTGPClassifier().const_range # "demo"
     #assert clf.demo_param == "function_set"
 
     clf.fit(X, y)

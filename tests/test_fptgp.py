@@ -190,5 +190,5 @@ def test_convert_to_numeric(my_data, target, exp_target_classes, exp_data):
 def test_fptgp_classifier_checks():
     """Run the sklearn estimator validation checks on FPTGP"""
 
-    check_estimator(FPTGP(population_size=1000,
+    check_estimator(FPTGPClassifier(population_size=1000,
                                       generations=5))

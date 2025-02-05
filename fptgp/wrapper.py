@@ -19,6 +19,9 @@ def verbose_out(fptgp: object, *msg: str) -> None:
         for m in msg:
             print(m)
 
+#def bang():
+#    print('bing')
+
 @validate_params( 
     {
     "fuzzy_X":      ["array-like"],
