@@ -18,7 +18,7 @@ Refer to the documentation for further information.
 
 ## Setup
 
-It may work with other versions but zuffy has been tested with these versions:
+It may work with other versions but Zuffy has been tested with Python 3.11.9 and these library versions:
 
   Library    | Version  |
 | ---------- | :------: |
@@ -28,7 +28,7 @@ It may work with other versions but zuffy has been tested with these versions:
 | matplotlib | 3.9.2    |
 | gplearn    | 0.4.2    |
 
-Note that Scikit-learn version 1.6+ modified the API around its "tags" and, until the authors update all their estimators, zuffy will not run with version 1.6+.
+Note that Scikit-learn version 1.6+ modified the API around its "tags" and, until the authors update all their estimators, Zuffy will not run with version 1.6+.
 
 To display the FPT you will need to install graphviz:
 
@@ -41,6 +41,13 @@ sudo apt install graphviz
 
 ##### Windows
 ???
+
+
+## Installation
+Clone the repository:
+> git clone https://github.com/pxom/fptgp.git
+Install the required dependencies:
+> pip install -r requirements.txt
 
 ## Resources
 
@@ -99,7 +106,8 @@ In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklea
     ])
 
     pipe.fit(X, y)
-    y_proba = pipe.predict_proba(X)```
+    y_proba = pipe.predict_proba(X)
+```
 
 
 ## How to cite Zuffy
