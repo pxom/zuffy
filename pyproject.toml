@@ -1,3 +1,17 @@
 [project]
 name = "zuffy"
 version = "0.1"
+authors = [
+{ name="POM", email="zuffy@mahoonium.ie" },
+]
+description = "Zuffy is a sklearn compatible open source python library for explainable machine learning models"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+"Programming Language :: Python :: 3",
+"License :: OSI Approved :: MIT License",
+"Operating System :: OS Independent",
+]
+[project.urls]
+Homepage = "https://github.com/pxom/fptgp"
+Issues = "https://github.com/pxom/fptgp/issues"
