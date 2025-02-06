@@ -6,25 +6,8 @@ API Reference
 
 This is an example on how to document the API of your own project.
 
-.. currentmodule:: skltemplate
+.. currentmodule:: zuffy
 
-Estimator
-=========
-
-.. autosummary::
-   :toctree: generated/
-   :template: class.rst
-
-   TemplateEstimator
-
-Transformer
-===========
-
-.. autosummary::
-   :toctree: generated/
-   :template: class.rst
-
-   TemplateTransformer
 
 Predictor
 =========
@@ -33,7 +16,7 @@ Predictor
    :toctree: generated/
    :template: class.rst
 
-    TemplateClassifier
+    ZuffyClassifier
 
 
 Utilities

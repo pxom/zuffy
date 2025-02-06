@@ -1,10 +1,8 @@
 [project]
 name = "zuffy"
 version = "0.01"
-authors = [
-{ name="POM", email="zuffy@mahoonium.ie" },
-]
-description = "Zuffy is a sklearn compatible open source python library for explainable machine learning models"
+authors = [{ name="POM", email="zuffy@mahoonium.ie" },]
+description = "Zuffy is a sklearn compatible open source python library for explainable machine learning through Fuzzy Pattern Trees"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [

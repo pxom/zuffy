@@ -1,5 +1,5 @@
 """
-@author: Peter O'Mahony <zuffy@mahoonium.com>
+@author: POM <zuffy@mahoonium.ie>
 License: BSD 3 clause
 This module contains the zuffy Classifier and supporting methods and functions.
 """
@@ -63,9 +63,9 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     Examples
     --------
     >>> from sklearn.datasets import load_iris
-    >>> from skltemplate import TemplateClassifier
+    >>> from zuffy import ZuffyClassifier
     >>> X, y = load_iris(return_X_y=True)
-    >>> clf = TemplateClassifier().fit(X, y)
+    >>> clf = ZuffyClassifier().fit(X, y)
     >>> clf.predict(X)
     array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

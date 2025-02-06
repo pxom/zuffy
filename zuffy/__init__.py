@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# License: BSD 3 clause
 """
-@author: Peter O'Mahony
+@author: POM <zuffy@mahoonium.ie>
+License: BSD 3 clause
 Initialisation module for FPTGP.
 """
 

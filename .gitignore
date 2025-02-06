@@ -77,7 +77,7 @@ target/
 .LSOverride
 
 # auto-generated files
-skltemplate/_version.py
+zuffy/_version.py
 
 # pom Jupyter notebooks
 .ipynb_checkpoints/

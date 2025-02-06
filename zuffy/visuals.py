@@ -1,5 +1,5 @@
 """
-@author: Peter O'Mahony <zuffy@mahoonium.com>
+@author: POM <zuffy@mahoonium.ie>
 License: BSD 3 clause
 Functions to handle the display of a FPT
 """

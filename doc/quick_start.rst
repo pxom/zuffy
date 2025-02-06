@@ -15,24 +15,15 @@ matplotlib  3.9.2
 Download and setup your repository
 ----------------------------------
 
-To create your package, you need to clone the ``project-template`` repository:
+To create your package, you need to clone the ``zuffy`` repository:
 
 .. prompt:: bash $
 
-  git clone https://github.com/scikit-learn-contrib/project-template.git
+  git clone https://github.com/pxom/zuffy.git
 
-Before to reinitialize your git repository, you need to make the following
-changes. Replace all occurrences of ``skltemplate``, ``sklearn-template``, or
-``project-template`` with the name of you own project. You can find all the
-occurrences using the following command:
 
-.. prompt:: bash $
 
-  git grep skltemplate
-  git grep sklearn-template
-  git grep project-template
-
-To remove the history of the template package, you need to remove the `.git`
+To remove the history of the  package, you need to remove the `.git`
 directory:
 
 .. prompt:: bash $
@@ -151,7 +142,7 @@ tests, and build the documentation. So for instance, you can run the tests with:
 
 .. prompt:: bash $
 
-  pytest -vsl skltemplate
+  pytest -vsl zuffy
 
 In this case, you can even use pre-commit before using git. You will need to initialize
 it with:

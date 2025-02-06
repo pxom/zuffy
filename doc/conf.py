@@ -10,10 +10,10 @@ import sys
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 from importlib.metadata import version as get_version
 
-project = "Scikit-learn Project Template"
-copyright = "2016, V. Birodkar"
-author = "V. Birodkar"
-release = get_version('skltemplate')
+project = "Zuffy"
+copyright = "2025, POM"
+author = "POM"
+release = get_version('zuffy')
 version = ".".join(release.split(".")[:3])
 
 # -- General configuration ---------------------------------------------------
@@ -58,7 +58,7 @@ html_sidebars = {
 
 html_theme_options = {
     "external_links": [],
-    "github_url": "https://github.com/scikit-learn-contrib/project-template",
+    "github_url": "https://github.com/pxom/fptgp",
     # "twitter_url": "https://twitter.com/pandas_dev",
     "use_edit_page_button": True,
     "show_toc_level": 1,
@@ -66,8 +66,8 @@ html_theme_options = {
 }
 
 html_context = {
-    "github_user": "scikit-learn-contrib",
-    "github_repo": "project-template",
+    "github_user": "pxom",
+    "github_repo": "zuffy",
     "github_version": "master",
     "doc_path": "doc",
 }
@@ -106,9 +106,9 @@ intersphinx_mapping = {
 plot_gallery = True
 
 sphinx_gallery_conf = {
-    "doc_module": "skltemplate",
+    "doc_module": "zuffy",
     "backreferences_dir": os.path.join("generated"),
     "examples_dirs": "../examples",
     "gallery_dirs": "auto_examples",
-    "reference_url": {"skltemplate": None},
+    "reference_url": {"zuffy": None},
 }

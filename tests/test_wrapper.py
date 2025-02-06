@@ -2,22 +2,8 @@ import pytest
 import numpy as np
 from unittest.mock import Mock, patch
 
-from zuffy.wrapper import ZuffyFitIterator
-
-#from zuffy.wrapper import ZuffyFitIterator, verbose_out, FPTGP_fit_job
-
-#--- pom start
-import sys
-import os
-
-# Add the directory containing your module to the Python path
-'''
-module_path = os.path.abspath(os.path.join('..', '../../..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
-import gplearn
-'''
-#--- end
+#from zuffy import wrapper
+from zuffy.wrapper import ZuffyFitIterator #, ZuffyFitIterator_OLD
 
 @pytest.fixture
 def mock_zuffy():

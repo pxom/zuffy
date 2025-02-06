@@ -1,20 +1,9 @@
-"""This file will just show how to write tests for the template classes."""
 import numpy as np
 import pytest
 from sklearn.datasets import load_iris
 from sklearn.utils._testing import assert_allclose, assert_array_equal
 
-from zuffy import ZuffyClassifier, functions, visuals
-#from zuffy.visuals import ObjectColor, FeatureColor, OperatorColor, export_graphviz, graphviz_tree
-#from zuffy import ZuffyClassifier #, TemplateEstimator, TemplateTransformer
-from zuffy.functions import trimf
-
-#import .functions
-#from gplearn.genetic import SymbolicClassifier
-
-# Authors: scikit-learn-contrib developers
-# License: BSD 3 clause
-
+from zuffy import ZuffyClassifier
 
 @pytest.fixture
 def data():

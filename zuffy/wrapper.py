@@ -1,5 +1,5 @@
 """
-@author: Peter O'Mahony <zuffy@mahoonium.com>
+@author: POM <zuffy@mahoonium.ie>
 License: BSD 3 clause
 This module contains the zuffy Wrappers and supporting methods and functions.
 """

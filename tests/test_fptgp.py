@@ -9,7 +9,7 @@ from sklearn.utils._testing import assert_allclose, assert_array_equal
 from sklearn.utils.estimator_checks import check_estimator
 
 from zuffy import ZuffyClassifier, functions, visuals
-from zuffy.functions import trimf, fuzzify_col, fuzzify_data, flatten, fuzzy_feature_names, convert_to_numeric
+from zuffy.functions import trimem, fuzzify_col, fuzzify_data, flatten, fuzzy_feature_names, convert_to_numeric
 
 # Authors: scikit-learn-contrib developers
 # License: BSD 3 clause
@@ -33,31 +33,31 @@ def test_fptgp_pom2():
     print('test_pom:2',x)
     assert pom(x) == 4  
 
-def test_fptgp_trimf1():
+def test_fptgp_trimem1():
     x = np.array([1.0])
     min = 1
     mid = 5
     max = 9
-    lo = trimf(x, [min, min, mid])
-    md = trimf(x, [min, mid, max])
-    hi = trimf(x, [mid, max, max])
+    lo = trimem(x, [min, min, mid])
+    md = trimem(x, [min, mid, max])
+    hi = trimem(x, [mid, max, max])
     z = [lo, md, hi]
 
-    print('result of trimf is',z)
+    print('result of trimem is',z)
     expected = np.array([[1.]  , [0.0], [0.0]])
     assert np.array_equal(z, expected)
 
-def test_fptgp_trimf2():
+def test_fptgp_trimem2():
     x = np.array([5.0])
     min = 1
     mid = 5
     max = 9
-    lo = trimf(x, [min, min, mid])
-    md = trimf(x, [min, mid, max])
-    hi = trimf(x, [mid, max, max])
+    lo = trimem(x, [min, min, mid])
+    md = trimem(x, [min, mid, max])
+    hi = trimem(x, [mid, max, max])
     z = [lo, md, hi]
 
-    print('result of trimf is',z)
+    print('result of trimem is',z)
     expected = np.array([[0.]  , [1.0], [0.0]])
     assert np.array_equal(z, expected)
 
@@ -66,28 +66,28 @@ def test_fptgp_trimf2():
     [6,1,5, 9,[[0.],[0.75],[0.25]]],
     [6,1,5,15,[[0.],[0.9], [0.1]]],
     ])
-def test_fptgp_trimf3(x,min,mid,max,expected):
+def test_fptgp_trimem3(x,min,mid,max,expected):
     x = np.array([x])
-    lo = trimf(x, [min, min, mid])
-    md = trimf(x, [min, mid, max])
-    hi = trimf(x, [mid, max, max])
+    lo = trimem(x, [min, min, mid])
+    md = trimem(x, [min, mid, max])
+    hi = trimem(x, [mid, max, max])
     z = [lo, md, hi]
 
-    print('result of trimf is',z)
+    print('result of trimem is',z)
     assert np.array_equal(z, expected)
 
 @pytest.mark.skip
-def test_fptgp_trimf4():
+def test_fptgp_trimem4():
     x = np.array([7.0])
     min = 1
     mid = 5
     max = 9
-    lo = trimf(x, [-1, 0, min, min, mid])
-    md = trimf(x, [min, mid, max])
-    hi = trimf(x, [mid, max, max])
+    lo = trimem(x, [-1, 0, min, min, mid])
+    md = trimem(x, [min, mid, max])
+    hi = trimem(x, [mid, max, max])
     z = [lo, md, hi]
 
-    print('result of trimf is',z)
+    print('result of trimem is',z)
     expected = np.array([[0.]  , [0.5], [0.5]])
     assert np.array_equal(z, expected)
 

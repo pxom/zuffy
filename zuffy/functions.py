@@ -1,18 +1,21 @@
+"""
+@author: POM <zuffy@mahoonium.ie>
+License: BSD 3 clause
+Functions to handle the display of a FPT
+"""
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-#print('*** in functions.py - included by __init__***')
-
-# from generatemf.py of skfuzzy
-def trimf(x, abc):
+def trimem(x, abc):
     """
-    Triangular membership function generator.
+    Determine triangular membership
 
     Parameters
     ----------
     x : 1d array
-        Independent variable.
+        Feature.
     abc : 1d array, length 3
         Three-element vector controlling shape of triangular function.
         Requires a <= b <= c.
@@ -42,6 +45,7 @@ def trimf(x, abc):
     y[idx] = 1
     return y
 
+
 def fuzzify_col(col: np.array, feature_name: str, info: bool = False, tags: list[str] = None) -> list[float] | str: # Three bands of fuzzification
     min = np.min(col)
     max = np.max(col)
@@ -53,9 +57,9 @@ def fuzzify_col(col: np.array, feature_name: str, info: bool = False, tags: list
     # med -> max
     #print(f'fuzzify_col: {min} < {mid} < {max}')
 
-    lo = trimf(col, [min, min, mid])
-    md = trimf(col, [min, mid, max])
-    hi = trimf(col, [mid, max, max])
+    lo = trimem(col, [min, min, mid])
+    md = trimem(col, [min, mid, max])
+    hi = trimem(col, [mid, max, max])
 
     mid = round(mid,2) # because of fp inaccuracy giving ...9999999998 etc
 
@@ -70,6 +74,7 @@ def fuzzify_col(col: np.array, feature_name: str, info: bool = False, tags: list
     if info:
         print(f"{feature_name} => {min} < {mid} < {max} ", end = ' ')
     return [lo,md,hi], new_feature_names
+
 
 def fuzzify_data(data: pd.DataFrame, non_fuzzy: list = [], info: bool = False, tags: list[str] = ['low', 'med', 'high']):
     if type(data) != pd.DataFrame:
@@ -110,6 +115,7 @@ def fuzzify_data(data: pd.DataFrame, non_fuzzy: list = [], info: bool = False, t
         fuzzy_feature_names = flatten(fuzzy_feature_names)
     return fuzzy_X, fuzzy_feature_names
 
+
 def flatten(matrix: list[list[float]]) -> list[float]:
     '''
     Flatten a list of arrays into a single dimensional list of values using concatenation.
@@ -121,6 +127,7 @@ def flatten(matrix: list[list[float]]) -> list[float]:
         else:
             raise ValueError(f"I cannot flatten a list that does not contain lists (found '{row}' in the matrix and I expected a list)")
     return flat_list
+
 
 def fuzzy_feature_names(flist: list[str], tags: list[str]) -> list[str]:
     '''
@@ -139,6 +146,7 @@ def fuzzy_feature_names(flist: list[str], tags: list[str]) -> list[str]:
                 new_features.append(tag + ' ' + f)
     return new_features
 
+
 def convert_to_numeric(df: pd.DataFrame, target):
     '''
     This converts the values in the target column into integers and
@@ -150,6 +158,7 @@ def convert_to_numeric(df: pd.DataFrame, target):
     #for colname, type in zip(my_data.columns,my_data.dtypes):
     #    print(f"{colname} is {type.name}")
     return le.classes_, df
+
 
 def convert_to_numeric2(df: pd.DataFrame): # single column
     '''
