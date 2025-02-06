@@ -1,4 +1,4 @@
-<table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="assets/zuffy_logo_small_nb.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
+<table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="assets/zuffy_logo_small_nb_gr.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
 
 
 ## A Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
@@ -9,9 +9,10 @@
 ![doc](https://github.com/scikit-learn-contrib/project-template/actions/workflows/deploy-gh-pages.yml/badge.svg)
 -->
 
-Zuffy is an open source python library for explainable machine learning models that is compatible with scikit-learn [scikit-learn](https://scikit-learn.org).
+### (NOTE THAT THIS PROJECT IS UNDER DEVELOPMENT AND LIKELY TO CHANGE SIGNIFICANTLY UNTIL THE FIRST RELEASE. USE AT YOUR OWN RISK.)
+Zuffy is an open source python library for explainable machine learning models.  It is compatible with [scikit-learn](https://scikit-learn.org).
 
-It aims to provide a simple set of tools for the user to explore FPTs that are inferred using 
+It aims to provide a simple set of tools for the exploration of FPTs that are inferred using 
 genetic programming techniques.
 
 Refer to the documentation for further information.
@@ -45,7 +46,7 @@ sudo apt install graphviz
 
 ## Installation
 Clone the repository:
-> git clone https://github.com/pxom/fptgp.git
+> git clone https://github.com/pxom/zuffy.git
 Install the required dependencies:
 > pip install -r requirements.txt
 
@@ -57,15 +58,15 @@ Install the required dependencies:
 
 ## Examples
 
-To see more elaborate examples, look [here](<https://github.com/zuffy-dev/zuffy/tree/master/notebooks/README.md>).
+To see more elaborate examples, look [here](<https://github.com/pxom/zuffy/tree/master/notebooks/README.md>).
 
 
 ```python
 
 import pandas as pd
 from sklearn.datasets import load_iris
-from fptgp.fptgp import FPTGPClassifier, functions, visuals
-from fptgp.fptgp.wrapper import FPTGP_fit_iterator
+from zuffy import ZuffyClassifier, functions, visuals
+from zuffy.wrapper import ZuffyFitIterator
 
 iris = load_iris()
 dataset = pd.DataFrame(data=iris.data, columns=iris.feature_names)
@@ -76,8 +77,8 @@ y = dataset.iloc[:,-1]
 
 fuzzy_X, fuzzy_features_names = functions.fuzzify_data(X)
 
-fptgp = FPTGPClassifier(generations=15, verbose=1)
-res = FPTGP_fit_iterator(fptgp, fuzzy_X, y, n_iter=3, split_at=0.25, random_state=77)
+zuffy = ZuffyClassifier(generations=15, verbose=1)
+res = ZuffyFitIterator(zuffy, fuzzy_X, y, n_iter=3, split_at=0.25)
 
 visuals.plot_evolution(
     res.getBestEstimator(),
@@ -89,10 +90,11 @@ visuals.graphviz_tree(
     res.getBestEstimator(),
     targetNames,
     featureNames=fuzzy_features_names,
-    treeName="Iris Dataset (best accuracy: " + str(round(res.getBestScore(),3)) + ")",
-    outputFilename='sample1')
+    treeName=f"Iris Dataset (best accuracy: {res.getBestScore():.3f})",
+    outputFilename='sample1_fpt')
 ```
 
+### * TBD *
 In an `sklearn Pipeline <https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_:
 
 ```python
@@ -115,7 +117,7 @@ Authors of scientific papers including results generated using Zuffy are asked t
 
 ```xml
 @article{ZUFFY_1, 
-    author    = "Peter O'Mahony",
+    author    = "POM",
     title     = { {Zuffy}: Open Source inference of FPT using GP },
     pages    = { 0--0 },
     volume    = { 1 },

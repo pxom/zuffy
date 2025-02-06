@@ -5,7 +5,7 @@
 
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
-from fptgp.utils.discovery import all_estimators
+from zuffy.utils.discovery import all_estimators
 
 
 # parametrize_with_checks allows to get a generator of check that is more fine-grained

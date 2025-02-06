@@ -8,8 +8,8 @@ from sklearn.datasets import load_iris
 from sklearn.utils._testing import assert_allclose, assert_array_equal
 from sklearn.utils.estimator_checks import check_estimator
 
-from fptgp import FPTGPClassifier #, TemplateEstimator, TemplateTransformer
-from fptgp.functions import trimf, fuzzify_col, fuzzify_data, flatten, fuzzy_feature_names, convert_to_numeric
+from zuffy import ZuffyClassifier, functions, visuals
+from zuffy.functions import trimf, fuzzify_col, fuzzify_data, flatten, fuzzy_feature_names, convert_to_numeric
 
 # Authors: scikit-learn-contrib developers
 # License: BSD 3 clause
@@ -98,13 +98,9 @@ def test_fuzzify_col1():
     info = True
     tags = ['bip','bop','burp']
 
-    #expected = ([np.array([1., 0., 0.]), np.array([0., 1., 0.]), np.array([0., 0., 1.])], None, [2.0, 2.0, 2.0])
-    #expected = ([np.array([1., 0., 0.]), np.array([0., 1., 0.]), np.array([0., 0., 1.])], None)
-    #expected = [np.array([1., 0., 0.]), np.array([0., 1., 0.]), np.array([0., 0., 1.])]
     expected = [[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]
-    #expected = ([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]], None)
 
-    res, dummy = fuzzify_col(col, feature_name, info=False, tags=None)
+    res, dummy = fuzzify_col(col, feature_name, info=info, tags=tags)
     print('res=',res)
     print('dummy=',dummy)
     print('expected=',expected)
@@ -118,17 +114,13 @@ def test_fuzzify_col1():
             [[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]],
     ])
 def test_fuzzify_col(col, expected):
-    #col = np.array([1.0,2.0,3.0])
     feature_name = 'bang'
     info = True
     tags = ['bip','bop','burp']
 
-    #expected = ([np.array([1., 0., 0.]), np.array([0., 1., 0.]), np.array([0., 0., 1.])], None, [2.0, 2.0, 2.0])
-    #expected = ([np.array([1., 0., 0.]), np.array([0., 1., 0.]), np.array([0., 0., 1.])], None)
-    #expected = [np.array([1., 0., 0.]), np.array([0., 1., 0.]), np.array([0., 0., 1.])]
     expected = [[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]
     
-    res, dummy = fuzzify_col(col, feature_name, info=False, tags=None)
+    res, dummy = fuzzify_col(col, feature_name, info=info, tags=tags)
     print('res=',res)
     print('dummy=',dummy)
     print('expected=',expected)
@@ -145,8 +137,6 @@ def test_fuzzify_data(data, exp_data, exp_cols):
     non_fuzzy = []
     info = False
     tags = ['bip','bop','burp']
-    #exp_data = [[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]
-    #exp_cols = ['bip zip| (1 to 2)', 'bop zip| (1 to 2 to 3)', 'burp zip| (2 to 3)']
 
     res, cols = fuzzify_data(data, non_fuzzy, info=info, tags=tags)
     print('res=',res)
@@ -173,15 +163,12 @@ def test_fuzzy_feature_names(flist, tags, expected):
     [['red','green','blue','red','red','red','red'],0,['blue', 'green', 'red'],[[2],[1],[0],[2],[2],[2],[2]] ],
     ])
 def test_convert_to_numeric(my_data, target, exp_target_classes, exp_data):
-    #my_data = ['red','green','blue','red','red','red','red']
     my_data = pd.DataFrame(my_data)
-    #target = 0 #'bang'
     print(f"-=-=-=")
     print(f"{my_data=}")
     print(f"-=-=-=")
     target_classes, new_data = convert_to_numeric(my_data, target)
     print(f"{target_classes=}")
-    #new_data = list(new_data)
     print(f"-=-=-=")
     print(f"{new_data.values=}")
     assert np.array_equal(target_classes, exp_target_classes)
@@ -190,5 +177,5 @@ def test_convert_to_numeric(my_data, target, exp_target_classes, exp_data):
 def test_fptgp_classifier_checks():
     """Run the sklearn estimator validation checks on FPTGP"""
 
-    check_estimator(FPTGPClassifier(population_size=1000,
+    check_estimator(ZuffyClassifier(population_size=1000,
                                       generations=5))
