@@ -1,6 +1,7 @@
 <table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="assets/zuffy_logo_small_nb_gr.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
 
 
+
 ## A Scikit-learn compatible Open Source library for introducing FPTs as an Explainability Tool
 ------------------------------------------------------------------------------------------
 <!-- 
@@ -8,8 +9,9 @@
 [![codecov](https://codecov.io/gh/scikit-learn-contrib/project-template/graph/badge.svg?token=L0XPWwoPLw)](https://codecov.io/gh/scikit-learn-contrib/project-template)
 ![doc](https://github.com/scikit-learn-contrib/project-template/actions/workflows/deploy-gh-pages.yml/badge.svg)
 -->
-
-### (NOTE THAT THIS PROJECT IS UNDER DEVELOPMENT AND LIKELY TO CHANGE SIGNIFICANTLY UNTIL THE FIRST RELEASE. USE AT YOUR OWN RISK.)
+```diff
+- NOTE THAT THIS PROJECT IS UNDER DEVELOPMENT AND LIKELY TO CHANGE SIGNIFICANTLY UNTIL THE FIRST RELEASE. USE AT YOUR OWN RISK.
+```
 Zuffy is an open source python library for explainable machine learning models.  It is compatible with [scikit-learn](https://scikit-learn.org).
 
 It aims to provide a simple set of tools for the exploration of FPTs that are inferred using 
