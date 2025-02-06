@@ -60,7 +60,7 @@ Install the required dependencies:
 
 ## Examples
 
-To see more elaborate examples, look [here](<https://github.com/pxom/zuffy/tree/master/notebooks/README.md>).
+To see more elaborate examples, look [here](<https://github.com/pxom/zuffy/tree/master/examples>).
 
 
 ```python
