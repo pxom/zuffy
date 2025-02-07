@@ -11,5 +11,5 @@ classifiers = [
 "Operating System :: OS Independent",
 ]
 [project.urls]
-Homepage = "https://github.com/pxom/fptgp"
-Issues = "https://github.com/pxom/fptgp/issues"
+Homepage = "https://github.com/pxom/zuffy"
+Issues = "https://github.com/pxom/zuffy/issues"
