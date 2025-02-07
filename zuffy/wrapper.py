@@ -33,6 +33,10 @@ def verbose_out(fptgp: object, *msg: str) -> None:
     prefer_skip_nested_validation=True
 )
 class ZuffyFitIterator:
+    '''
+    ZuffyFitIterator documentation to be done.
+    '''
+
     performance = None
     best_est = None
     best_score = None
@@ -51,9 +55,15 @@ class ZuffyFitIterator:
         #return self.best_est
 
     def getBestEstimator(self):
+        '''
+        getBestEstimator documentation to be done.
+        '''
         return self.best_est
     
     def getBestScore(self):
+        '''
+        getBestScore documentation to be done.
+        '''
         return self.best_score
     
     def getPerformance(self):
@@ -70,6 +80,9 @@ class ZuffyFitIterator:
     prefer_skip_nested_validation=True
 )
 def ZuffyFitJob(fptgp, fuzzy_X, y, split_at = 0.25, random_state=0):
+    '''
+    ZuffyFitJob documentation to be done.
+    '''
     X_train, X_test, y_train, y_test = train_test_split(fuzzy_X, y, test_size=split_at, random_state=random_state)
     res   = fptgp.fit(X_train, y_train)
     score = res.score(X_test,y_test)
@@ -108,6 +121,9 @@ def ZuffyFitJob(fptgp, fuzzy_X, y, split_at = 0.25, random_state=0):
     return score, res, class_scores
 
 def ZuffyFitIterator_OLD(fptgp, fuzzy_X, y, n_iter = 10, split_at=0.2, random_state=0):
+    '''
+    ZuffyFitIterator_OLD documentation to be done.
+    '''
     # now call the iter function to split and train the dataset n_iter times
 
     best_score = -np.inf

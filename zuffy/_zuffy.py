@@ -32,14 +32,193 @@ from gplearn.utils import check_random_state
 
 from ._fpt_operators import *
 
-# Note that the mixin class should always be on the left of `BaseEstimator` to ensure
-# the MRO works as expected.
 class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     """A Fuzzy Pattern Tree with Genetic Programming Classifier which uses gplearn to infer a FPT.
 
+    These parameters are passed through to the gplearn SymbolicClassifier and further documentation is 
+    available on that at https://gplearn.readthedocs.io/en/stable/reference.html#gplearn.genetic.SymbolicClassifier.
+
+    This classifier uses OneVsRestClassifier classifier to handle multi-class classifications.
+
     Parameters
     ----------
-    demo_param : str, default='demo'
+    population_size : integer, optional (default=1000)
+        The number of programs in each generation.
+
+    generations : integer, optional (default=20)
+        The number of generations to evolve.
+
+    tournament_size : integer, optional (default=20)
+        The number of programs that will compete to become part of the next
+        generation.
+
+    stopping_criteria : float, optional (default=0.0)
+        The required metric value required in order to stop evolution early.
+
+    const_range : tuple of two floats, or None, optional (default=(-1., 1.))
+        The range of constants to include in the formulas. If None then no
+        constants will be included in the candidate programs.
+
+    init_depth : tuple of two ints, optional (default=(2, 6))
+        The range of tree depths for the initial population of naive formulas.
+        Individual trees will randomly choose a maximum depth from this range.
+        When combined with `init_method='half and half'` this yields the well-
+        known 'ramped half and half' initialization method.
+
+    init_method : str, optional (default='half and half')
+        - 'grow' : Nodes are chosen at random from both functions and
+          terminals, allowing for smaller trees than `init_depth` allows. Tends
+          to grow asymmetrical trees.
+        - 'full' : Functions are chosen until the `init_depth` is reached, and
+          then terminals are selected. Tends to grow 'bushy' trees.
+        - 'half and half' : Trees are grown through a 50/50 mix of 'full' and
+          'grow', making for a mix of tree shapes in the initial population.
+
+    function_set : iterable, optional (default=('add', 'sub', 'mul', 'div'))
+        The functions to use when building and evolving programs. This iterable
+        can include strings to indicate either individual functions as outlined
+        below, or you can also include your own functions as built using the
+        ``make_function`` factory from the ``functions`` module.
+
+        Available individual functions are:
+
+        - 'MAXIMUM' : tbd, arity=2.
+        - 'MINIMUM' : tbd, arity=2.
+        - 'COMPLEMENT' : Not, arity=2.
+
+    transformer : str, optional (default='sigmoid')
+        The name of the function through which the raw decision function is
+        passed. This function will transform the raw decision function into
+        probabilities of each class.
+
+        This can also be replaced by your own functions as built using the
+        ``make_function`` factory from the ``functions`` module.
+
+    metric : str, optional (default='log loss')
+        The name of the raw fitness metric. Available options include:
+
+        - 'log loss' aka binary cross-entropy loss.
+
+    parsimony_coefficient : float or "auto", optional (default=0.001)
+        This constant penalizes large programs by adjusting their fitness to
+        be less favorable for selection. Larger values penalize the program
+        more which can control the phenomenon known as 'bloat'. Bloat is when
+        evolution is increasing the size of programs without a significant
+        increase in fitness, which is costly for computation time and makes for
+        a less understandable final result. This parameter may need to be tuned
+        over successive runs.
+
+        If "auto" the parsimony coefficient is recalculated for each generation
+        using c = Cov(l,f)/Var( l), where Cov(l,f) is the covariance between
+        program size l and program fitness f in the population, and Var(l) is
+        the variance of program sizes.
+
+    p_crossover : float, optional (default=0.9)
+        The probability of performing crossover on a tournament winner.
+        Crossover takes the winner of a tournament and selects a random subtree
+        from it to be replaced. A second tournament is performed to find a
+        donor. The donor also has a subtree selected at random and this is
+        inserted into the original parent to form an offspring in the next
+        generation.
+
+    p_subtree_mutation : float, optional (default=0.01)
+        The probability of performing subtree mutation on a tournament winner.
+        Subtree mutation takes the winner of a tournament and selects a random
+        subtree from it to be replaced. A donor subtree is generated at random
+        and this is inserted into the original parent to form an offspring in
+        the next generation.
+
+    p_hoist_mutation : float, optional (default=0.01)
+        The probability of performing hoist mutation on a tournament winner.
+        Hoist mutation takes the winner of a tournament and selects a random
+        subtree from it. A random subtree of that subtree is then selected
+        and this is 'hoisted' into the original subtrees location to form an
+        offspring in the next generation. This method helps to control bloat.
+
+    p_point_mutation : float, optional (default=0.01)
+        The probability of performing point mutation on a tournament winner.
+        Point mutation takes the winner of a tournament and selects random
+        nodes from it to be replaced. Terminals are replaced by other terminals
+        and functions are replaced by other functions that require the same
+        number of arguments as the original node. The resulting tree forms an
+        offspring in the next generation.
+
+        Note : The above genetic operation probabilities must sum to less than
+        one. The balance of probability is assigned to 'reproduction', where a
+        tournament winner is cloned and enters the next generation unmodified.
+
+    p_point_replace : float, optional (default=0.05)
+        For point mutation only, the probability that any given node will be
+        mutated.
+
+    max_samples : float, optional (default=1.0)
+        The fraction of samples to draw from X to evaluate each program on.
+
+    class_weight : dict, 'balanced' or None, optional (default=None)
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``
+
+    feature_names : list, optional (default=None)
+        Optional list of feature names, used purely for representations in
+        the `print` operation or `export_graphviz`. If None, then X0, X1, etc
+        will be used for representations.
+
+    warm_start : bool, optional (default=False)
+        When set to ``True``, reuse the solution of the previous call to fit
+        and add more generations to the evolution, otherwise, just fit a new
+        evolution.
+
+    low_memory : bool, optional (default=False)
+        When set to ``True``, only the current generation is retained. Parent
+        information is discarded. For very large populations or runs with many
+        generations, this can result in substantial memory use reduction.
+
+    n_jobs : integer, optional (default=1)
+        The number of jobs to run in parallel for `fit`. If -1, then the number
+        of jobs is set to the number of cores.
+
+    verbose : int, optional (default=0)
+        Controls the verbosity of the evolution building process.
+
+    random_state : int, RandomState instance or None, optional (default=None)
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`.
+
+    Attributes
+    ----------
+    run_details_ : dict
+        Details of the evolution process. Includes the following elements:
+
+        - 'generation' : The generation index.
+        - 'average_length' : The average program length of the generation.
+        - 'average_fitness' : The average program fitness of the generation.
+        - 'best_length' : The length of the best program in the generation.
+        - 'best_fitness' : The fitness of the best program in the generation.
+        - 'best_oob_fitness' : The out of bag fitness of the best program in
+          the generation (requires `max_samples` < 1.0).
+        - 'generation_time' : The time it took for the generation to evolve.
+
+    See Also
+    --------
+    gplearn
+
+    References
+    ----------
+    .. [1] J. Koza, "Genetic Programming", 1992.
+
+    .. [2] R. Poli, et al. "A Field Guide to Genetic Programming", 2008.
+
+
+
+    Parameters
+    ----------
+    class_weight : 'balanced', list or None (default)
         A parameter used for demonstation of how to pass and store paramters.
 
     Attributes

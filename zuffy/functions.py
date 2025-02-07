@@ -8,40 +8,43 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-def trimem(x, abc):
+def trimf(feature, abc):
     """
-    Determine triangular membership
+    This calculates the fuzzy membership values of a feature using the triangular membership function.
 
     Parameters
     ----------
-    x : 1d array
-        Feature.
+    feature : 1d array
+        Crisp values of the Feature specified as a scalar or vector.
+
     abc : 1d array, length 3
-        Three-element vector controlling shape of triangular function.
+        Parameters to the Membership specified as the vector [a,b,c].  Parameters a and c are the base of
+        the function and b is the peak.
+        
         Requires a <= b <= c.
 
     Returns
     -------
     y : 1d array
-        Triangular membership function.
+        Vector representing the triangular membership function.
     """
     assert len(abc) == 3, 'abc parameter must have exactly three elements.'
     a, b, c = np.r_[abc]     # Zero-indexing in Python
     assert a <= b and b <= c, 'abc requires the three elements a <= b <= c.'
 
-    y = np.zeros(len(x))
+    y = np.zeros(len(feature))
 
     # Left side
     if a != b:
-        idx = np.nonzero(np.logical_and(a < x, x < b))[0]
-        y[idx] = (x[idx] - a) / float(b - a)
+        idx = np.nonzero(np.logical_and(a < feature, feature < b))[0]
+        y[idx] = (feature[idx] - a) / float(b - a)
 
     # Right side
     if b != c:
-        idx = np.nonzero(np.logical_and(b < x, x < c))[0]
-        y[idx] = (c - x[idx]) / float(c - b)
+        idx = np.nonzero(np.logical_and(b < feature, feature < c))[0]
+        y[idx] = (c - feature[idx]) / float(c - b)
 
-    idx = np.nonzero(x == b)
+    idx = np.nonzero(feature == b)
     y[idx] = 1
     return y
 
@@ -57,9 +60,9 @@ def fuzzify_col(col: np.array, feature_name: str, info: bool = False, tags: list
     # med -> max
     #print(f'fuzzify_col: {min} < {mid} < {max}')
 
-    lo = trimem(col, [min, min, mid])
-    md = trimem(col, [min, mid, max])
-    hi = trimem(col, [mid, max, max])
+    lo = trimf(col, [min, min, mid])
+    md = trimf(col, [min, mid, max])
+    hi = trimf(col, [mid, max, max])
 
     mid = round(mid,2) # because of fp inaccuracy giving ...9999999998 etc
 

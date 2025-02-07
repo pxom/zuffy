@@ -1,7 +1,7 @@
 """
 @author: POM <zuffy@mahoonium.ie>
 License: BSD 3 clause
-This module contains the default set of FPT operators.
+This module contains the available set of FPT operators.
 """
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
@@ -85,6 +85,9 @@ def complement(b):
     return 1 - b
 
 def _MAXIMUM(x0, x1):
+    """
+    When using Fuzzy Sets, the Maximum function performs the equivalent of a boolean OR.
+    """
     return np.maximum(x0, x1)
 
 MAXIMUM = functions.make_function(function=_MAXIMUM,
@@ -92,6 +95,9 @@ MAXIMUM = functions.make_function(function=_MAXIMUM,
                         arity=2)
 
 def _MINIMUM(x0, x1):
+    """
+    When using Fuzzy Sets, the Minimum function performs the equivalent of a boolean AND.
+    """
     return np.minimum(x0, x1)
 
 MINIMUM = functions.make_function(function=_MINIMUM,

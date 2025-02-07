@@ -61,6 +61,7 @@ class ObjectColor:
             self.used_colors[object_name] = next_color_id
             return cmap[next_color_id]
 
+
 class FeatureColor(ObjectColor):
 
     def __init__(self, color_list=None):

@@ -4,30 +4,6 @@ License: BSD 3 clause
 Functions to handle the display of a FPT
 """
 
-#import random
-#import time
-#import html
-#import matplotlib.pyplot as plt
-#import numpy as np
-#import pandas as pd
-#import graphviz
-#from gplearn.functions import _Function
-#
-#from sklearn import tree
-#from sklearn.tree import DecisionTreeRegressor
-#from sklearn.inspection import permutation_importance
-#from sklearn.utils._param_validation import StrOptions, Interval, Options, validate_params, HasMethods
-#import numbers # for scikit learn Interval
-
-def pompom():
-    print('pompom')
-
-class xObjectColor():
-    def __init__(self, color_list=None):
-        self.object_colors  = color_list
-        self.used_colors    = {}
-
-
 class ObjectColor():
 
     def_operator_colors = [ # default list of operator colors (pale pastels)
@@ -57,6 +33,12 @@ class ObjectColor():
         self.used_colors    = {}
 
     def getColor(self, object_name):
+        """
+        This returns a color from the list of Operator or Feature colors.
+        If the named object (Feature or Operator) does not already exist on the list of seen 
+        objects then the next available color on the list is assigned and returned otherwise
+        it returns the same color as when the object was first seen.
+        """
         cmap = self.object_colors
         if object_name in self.used_colors:
             return cmap[self.used_colors[object_name]]
@@ -66,6 +48,9 @@ class ObjectColor():
             return cmap[next_color_id]
 
 class FeatureColor(ObjectColor):
+    """
+    Initialises the list of Feature colors.
+    """
 
     def __init__(self, color_list=None):
         if color_list == None:
@@ -74,8 +59,11 @@ class FeatureColor(ObjectColor):
             color_list.extend(self.def_feature_colors)
         super().__init__(color_list)
 
-class OperatorColor(ObjectColor):
 
+class OperatorColor(ObjectColor):
+    """
+    Initialises the list of Operator colors.
+    """
     def __init__(self, color_list=None):
         if color_list == None:
             color_list = self.def_operator_colors
@@ -83,7 +71,3 @@ class OperatorColor(ObjectColor):
             color_list.extend(self.def_operator_colors)
         super().__init__(color_list)
 
-class yObjectColor():
-    def __init__(self, color_list=None):
-        self.object_colors  = color_list
-        self.used_colors    = {}
