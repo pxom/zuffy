@@ -12,7 +12,7 @@ This module contains the zuffy Classifier and supporting methods and functions.
 import numbers # for scikit learn Interval
 import numpy as np
 import sklearn # so that we can check the version number
-from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin, _fit_context
+from sklearn.base import BaseEstimator, ClassifierMixin, _fit_context
 from sklearn.metrics import euclidean_distances
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.utils._param_validation import StrOptions, Interval, Options
@@ -63,17 +63,17 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     Examples
     --------
     >>> from sklearn.datasets import load_iris
-    >>> from zuffy import ZuffyClassifier
+    >>> from zuffy.zuffy import ZuffyClassifier
     >>> X, y = load_iris(return_X_y=True)
     >>> clf = ZuffyClassifier().fit(X, y)
     >>> clf.predict(X)
-    array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-           0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-           2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-           2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     """
 
     # This is a dictionary allowing to define the type of parameters.

@@ -1,5 +1,6 @@
 # pom extract from https://github.com/adhiiisetiawan/atari-dqn/blob/main/requirements.txt
 numpy        == 1.26.4 ; python_full_version >= "3.7.1" and python_version < "3.12"
-pandas       == 2.2.1  ; python_full_version >= "3.7.1" and python_version < "3.12"
-scikit-learn == 1.5.2  ; python_full_version >= "3.7.1" and python_version < "3.12"
-matplotlib   == 3.9.2  ; python_full_version >= "3.7.1" and python_version < "3.12"
+pandas       == 2.2.1
+scikit-learn == 1.5.2
+matplotlib   == 3.9.2
+gplearn      == 0.4.2
