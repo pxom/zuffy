@@ -1,4 +1,4 @@
-<table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="assets/zuffy_logo_small_nb_gr.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
+<table><tr><td><img style="float:left;padding-right:0px;vertical-align:top;border:none" src="https://raw.githubusercontent.com/pxom/zuffy/master/assets/zuffy_logo_small_nb_gr.png" alt="Zuffy Logo" width="80"/></td><td><h2>Zuffy - Fuzzy Pattern Trees with Genetic Programming</h2></td></tr></table>
 
 
 
