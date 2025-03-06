@@ -6,6 +6,8 @@ Functions to handle the display of a FPT
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
+
 from sklearn.preprocessing import LabelEncoder
 
 def trimf(feature, abc):
@@ -50,6 +52,13 @@ def trimf(feature, abc):
 
 
 def fuzzify_col(col: np.array, feature_name: str, info: bool = False, tags: list[str] = None) -> list[float] | str: # Three bands of fuzzification
+    # ToDo: check that col contains only numeric data
+    if not is_numeric_dtype(col):
+        raise ValueError(f"This column ({feature_name}) must contain numeric data but it does not.")
+    
+    if not np.issubdtype(col.dtype, np.number):
+        raise ValueError(f"np This column ({feature_name}) must contain numeric data but it does not.")
+    
     min = np.min(col)
     max = np.max(col)
     mid = int((max-min)/2) + min

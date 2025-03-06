@@ -27,26 +27,10 @@ class ObjectColor:
     '''
 
     def_operator_colors = [ # default list of operator colors (pale pastels)
-        '#ff999922',
-        '#99ff9922',
-        '#9999ff22',
-        '#99ffff22',
-        '#ff99ff22',
-        '#ffff9922',
-        ]
+        '#ff999922', '#99ff9922', '#9999ff22', '#99ffff22', '#ff99ff22', '#ffff9922' ]
     
     def_feature_colors = [ # default list of feature colors (strong)
-        '#1f77b4',
-        '#ff7f0e',
-        '#2ca02c',
-        '#d62728',
-        '#9467bd',
-        '#8c564b',
-        '#e377c2',
-        '#7f7f7f',
-        '#bcbd22',
-        '#17becf',
-        ]
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf' ]
 
     def __init__(self, color_list=None):
         self.object_colors  = color_list
@@ -102,7 +86,6 @@ def add_importance(feature):
     
     f_mean, f_std, f_rank = list(feature)
     if not isinstance(f_mean,float):
-    #if not type(f_mean) in (int, float): # does not work when f_mean is a numpy float
         raise ValueError(f"The Feature Importance dictionary does not have a numeric value for the mean ({feature}).")
     
     f_mean = round(feature[0],3)
@@ -116,7 +99,7 @@ def output_node(i, node, featureNames, FeatureColorx, impFeat=None):
         if featureNames is None:
             feature_name = 'X%s' % node
         else:
-            feature_name = featureNames[node] #.replace('|', '<br/>')
+            feature_name = featureNames[node]
 
         fill = FeatureColorx.getColor(feature_name)
 
@@ -126,9 +109,6 @@ def output_node(i, node, featureNames, FeatureColorx, impFeat=None):
 
         feature_name = feature_name.replace('|', '<br/>')
 
-        #output += ('%d [label="%s", color="black", fillColor="%s", shape=none, image="fpt_node_1x5.png"] ;\n'
-        #output = ('%d [label=<<table border="0" cellborder="0"><tr><td>%s</td></tr><tr><td border="1" align="left" fixedsize="true" width="20" height="25"><img src="img_50_50.png"></td><td>%s</td></tr></table>>, color="black", fillColor="%s", shape=rectangle] ;\n'
-        
         html_cell = f'<tr><td bgColor="white" color="red">{extra}</td></tr>' if extra else ''
             
         output = ('%d [label=<\
@@ -177,13 +157,13 @@ def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillCo
     terminals = []
     output = ''
     # Initialise the color switchers
-    operatorColorx = operator_col_fn # OperatorColor()
-    FeatureColorx  = feature_col_fn # FeatureColor()
+    operatorColorx = operator_col_fn
+    FeatureColorx  = feature_col_fn
 
     for i, node in enumerate(program.program):
         i = i + start
         fill = fillColor
-        if isinstance(node, _Function): # _Function):
+        if isinstance(node, _Function):
             terminals.append([node.arity, i])
             fill = operatorColorx.getColor(node.name)
             output += ('%d [label="%s", style=filled, fillColor="%s"] ;\n'
@@ -192,7 +172,7 @@ def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillCo
             output += output_node(i, node, featureNames, FeatureColorx, impFeat)
             if i == start:
                 # A degenerative program of only one node
-                return output #+ '}'
+                return output
             terminals[-1][0] -= 1
             terminals[-1].append(i)
             while terminals[-1][0] == 0:
@@ -212,21 +192,22 @@ def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillCo
 
 @validate_params( 
     {
-    "est_list":         [HasMethods("fit")], # [list], # how can we specify a type of object or list of objects?
-    "targetNames":      [None, "array-like"],  # array-like allows for np arrays and lists
+    "est_list":         [HasMethods("fit")], 
+    "targetName":       [None, str],  # The name to use at the top of our tree for each classification value
     "featureNames":     [None, list],
     "treeName":         [None, str],
-    "bgColor":          [None, str], # can we validate a color?
+    "bgColor":          [None, str],
     "impFeat":          [None, dict],
     "outputFilename":   [None, str],
-    "featColorList":   [None, list],
-    "operColorList":   [None, list],
+    "featColorList":    [None, list],
+    "operColorList":    [None, list],
     }, 
     prefer_skip_nested_validation=True
 )
 def graphviz_tree(
             fptgp,
-            targetNames=None,
+            targetFeatureName='Target',
+            targetClassNames=None, # a list like ['sentosa',''...] or ['transported','not transported']
             featureNames=None,
             treeName=None,
             impFeat=None,
@@ -246,15 +227,21 @@ def graphviz_tree(
         featureNames = fptgp.estimator.feature_names
 
     featureNames = sanitize_names(featureNames)
-    if targetNames is not None and len(list(targetNames))>0:  # this allows for both numpy array and list
-        if len(targetNames) < len(fptgp.estimators_):
-            raise ValueError(f'There are insufficient targetNames ({len(targetNames)}) supplied to represent each of the {len(fptgp.estimators_)} classes.')
+
+    if 0:
+        if targetNames is not None and len(list(targetNames))>0:  # this allows for both numpy array and list
+            if len(targetNames) < len(fptgp.estimators_):
+                raise ValueError(f'There are insufficient targetNames ({len(targetNames)}) supplied to represent each of the {len(fptgp.estimators_)} classes.')
+            else:
+                targetNames  = sanitize_names(targetNames)
         else:
-            targetNames  = sanitize_names(targetNames)
-    else:
-        #targetNames  = ['Target_' + str(i) for i in range(len(est_list))]
-        #targetNames  = np.unique(fptgp.estimators_[0].y_) 
-        targetNames = list(fptgp.classes_)
+            #targetNames  = ['Target_' + str(i) for i in range(len(est_list))]
+            #targetNames  = np.unique(fptgp.estimators_[0].y_) 
+            targetNames = list(fptgp.classes_)
+
+    # We need to translate the target classes from their numeric equivlent into str if our classes are strings and we need those strings sent in as a param
+    if targetClassNames is None:
+        targetClassNames = list(fptgp.classes_)
 
     # need to ensure no more than scale nodes
     scale = 1000
@@ -273,29 +260,23 @@ def graphviz_tree(
         out += f'label="{treeName}"\n'
         out += f'labelloc  =  t\n'
     for idx, e in enumerate(fptgp.estimators_):
-        #dot_data.append(export_graphviz(e._program, start=idx*100))
+        # This is the tree for class called targetClassNames[idx] 
         if not hasattr(e, "_program"):
             raise ValueError("The Classifier list is expected to have the _program attribute so that it can build the tree but is is missing.")
 
         out += export_graphviz(e._program, start=idx*scale, fillColor='#{:06x}'.format(random.randint(0, 0xFFFFFF)), featureNames=featureNames, operator_col_fn=operatorColorx, feature_col_fn=FeatureColorx,impFeat=impFeat )
-        #wta_edges += '%d:%s -> %d [label="%s"];\n' % (wta_id, 'port_' + str(idx), idx*scale, targetNames[idx]) # 'class_' + str(idx))
         wta_edges += '%d:%s -> %d;\n' % (wta_id, 'port_' + str(idx), idx*scale) # 'class_' + str(idx))
 
         if showFitness:
             extra = f" ({e._program.raw_fitness_:3.3f})"
         else:
             extra = ""
-        #wta_ports += "<td port='port_%d'>%s</td>" % (idx, str(targetNames[idx]) + f" ({score:3.3f})" ) # 'class_' + str(idx))
-        wta_ports += "<td port='port_%d'>%s</td>" % (idx, str(targetNames[idx]) + extra ) # 'class_' + str(idx))
+        wta_ports += "<td port='port_%d'>%s</td>" % (idx, targetFeatureName + '=' + str(targetClassNames[idx]) + extra ) # 'class_' + str(idx))
 
-    #out += ('%d [label="%s", color="%s", shape=record, style=filled, width=4] ;\n'
-    #            % (wta_id, 'WTA', '#ffcc33'))
     out += ('%d [label=%s, color="%s", shape=plaintext, width=4, fontname="Helvetica"] ;\n'
-                #% (wta_id, "<<table border='1' cellborder='1'><tr><td colspan='3'>WTA</td></tr><tr><td port='port_one'>First port</td><td port='port_two'>Second port</td><td port='port_three'>Third port</td></tr></table>>", '#ffcc33'))
                 % (wta_id, f"<<table border='1' cellborder='1' bgColor='{rootBGColor}'><tr><td colspan='{len(fptgp.estimators_)}'>{rootText}</td></tr><tr>{wta_ports}</tr></table>>", 'black'))
     out += wta_edges
     out += '}'
-    #print(out)
     graph = graphviz.Source(out)
     _ = graph.render(outputFilename, format='png', view=False, cleanup=True)
     return out, graph
@@ -385,7 +366,7 @@ def show_feature_importance(reg, X_test, y_test, features=None, outputFilename=N
     rept = 20
     #rept = 3
     start_time = time.time()
-    result = permutation_importance(reg, X_test, y_test, n_repeats=rept) #, n_jobs=3) #, random_state=0)
+    result = permutation_importance(reg, X_test, y_test, n_repeats=rept)
     elapsed_time = time.time() - start_time
     print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
 
@@ -396,9 +377,7 @@ def show_feature_importance(reg, X_test, y_test, features=None, outputFilename=N
     imp_graph_val = []
     rank = 1
     for i in result.importances_mean.argsort()[::-1]:
-        #if result.importances_mean[i] - 2 * result.importances_std[i] > 0:
         if result.importances_mean[i] != 0 or result.importances_std[i] !=0:
-            #impFeat.append([features[i], result.importances_mean[i], result.importances_std[i]])
             impFeat[features[i]] = [result.importances_mean[i], result.importances_std[i], rank]
             rank += 1
             imp_graph_name.append(features[i])
@@ -408,14 +387,11 @@ def show_feature_importance(reg, X_test, y_test, features=None, outputFilename=N
                 f" +/- {result.importances_std[i]:.3f}")
             
     # --- plot top 10
-    #tree_importances = pd.Series(result.importances_mean.argsort()[::-10], index=features)
     top_ten = sorted(enumerate(result.importances_mean), key=lambda x: x[1], reverse=True)[:10]
     tree_importances = pd.Series(top_ten, index=[features[i] if j>0 else None for i,j in top_ten])
 
     # Plot permutation feature importances
     fig, ax = plt.subplots()
-    #tree_importances.plot.bar(yerr=[result.importances_std[i]  for i in top_ten ], ax=ax, color='blue')
-    #tree_importances.plot.bar(yerr=[result.importances_mean[i] for i in top_ten ], ax=ax, color='green')
     plt.bar(imp_graph_name, imp_graph_val, color='#ffcc33')
     ax.set_title("Feature importances using permutation on full model")
     ax.set_ylabel("TODO: Explain 'Mean accuracy decrease'")
@@ -426,7 +402,6 @@ def show_feature_importance(reg, X_test, y_test, features=None, outputFilename=N
     else:
         plt.show()
     return impFeat
-    #plt.show()
     
     '''
     fig, ax = plt.subplots(figsize=(8, 4))

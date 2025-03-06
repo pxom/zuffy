@@ -285,7 +285,7 @@ array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         "random_state":         ["random_state"],
         "stopping_criteria":    [Interval(numbers.Real, 0, 1, closed="both")],
         "tournament_size":      [Interval(numbers.Integral, 1, None, closed="left")],
-        "transformer":          [StrOptions({'sigmoid'})],
+        "transformer":          [StrOptions({'sigmoid'}), object],
         "verbose":              ["verbose"],
         "warm_start":           [bool],
     }
