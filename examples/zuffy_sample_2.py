@@ -79,7 +79,7 @@ visuals.graphviz_tree(
     featureNames=fuzzy_features_names,
     impFeat=feat_imp,
     treeName=f"spaceshipTitanic Dataset (best accuracy: {res.getBestScore():.3f})\n",
-    outputFilename=f'sample12_fpt_{res.getBestScore()*1000:.0f}')
+    outputFilename=f'sample2_fpt_{res.getBestScore()*1000:.0f}')
 
 print(metrics.classification_report
       (y, res.getBestEstimator().predict(fuzzy_X)))
