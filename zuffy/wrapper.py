@@ -55,7 +55,7 @@ class ZuffyFitIterator:
         iter_perf = []
         sum_scores = 0
         for iter in range(self.n_iter):
-                self.verbose_out(f"{iter=}")
+                #self.verbose_out(f"{iter=}")
                 iter_time = time.time()
                 if self.random_state != None:
                     rs = self.random_state + iter
@@ -77,10 +77,10 @@ class ZuffyFitIterator:
                     smallest_tree = len_progs
                     self.verbose_out(f'\aNew leader with score {score} and size {len_progs}')
                 iter_dur = round(time.time() - iter_time,0)
-                avg_score = round(sum_scores/(iter +1),4)
-                self.verbose_out(f'Duration of iteration #{iter} is {iter_dur}s # Best so far: {round(best_score,4)}/{smallest_tree}  Avg: {avg_score}')
+                avg_score = sum_scores/(iter +1)
+                self.verbose_out(f'Duration of iteration #{iter} is {iter_dur}s # Best so far: {best_score:.5f}/{smallest_tree}  Avg: {avg_score:.5f}')
 
-        self.verbose_out(f"{best_iter=}")
+        self.verbose_out(f"Finished iterating - {best_iter=}")
         self.best_est = best_est
         self.best_score = best_score
         self.iter_perf = iter_perf
@@ -104,7 +104,7 @@ class ZuffyFitIterator:
         X_train, X_test, y_train, y_test = train_test_split(fuzzy_X, y, test_size=split_at, random_state=random_state)
         res   = fptgp.fit(X_train, y_train)
         score = res.score(X_test,y_test)
-        self.verbose_out('Multi score',score)
+        self.verbose_out(f'Multi score: {score:.8f}')
         '''
         Can we now test each branch for each class and score them individually so that we can combine the best branches?
         '''
@@ -114,7 +114,8 @@ class ZuffyFitIterator:
         sum_scores = 0
         score_cnt  = 0
         if 1:
-            for cls in np.unique(y):
+            #for cls in np.unique(y):
+            for cls in fptgp.classes_:
                 cls_idx = y_test == cls
                 if len(y_test[cls_idx]) > 0:
                     class_score = accuracy_score(y_test[cls_idx], predictions[cls_idx])
@@ -128,7 +129,7 @@ class ZuffyFitIterator:
                     self.verbose_out(f'class {cls} is not present in this split.')
             #avg_score = round(sum_scores/len(class_scores),5)
             avg_score = round(sum_scores/score_cnt,5)
-            self.verbose_out(f"{avg_score=}\nDiff: {round(avg_score - score,5)=}")
+            #self.verbose_out(f"{avg_score=}\nDiff: {round(avg_score - score,5)=}")
 
         if 0:
             print('Final(?) Population is:')
@@ -171,5 +172,5 @@ class ZuffyFitIterator:
             if class_score > best_class_score:
                 best_class_score = class_score
                 best_class_name = class_name
-        self.verbose_out(f'Best class score is {class_score} and indicates our tree is for Target={best_class_name}')
+        self.verbose_out(f'Best class score is {class_score} and indicates our tree is for when Target={best_class_name}')
         return best_class_name

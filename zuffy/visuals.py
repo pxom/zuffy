@@ -357,16 +357,14 @@ def plot_evolution(model, target_classes=None, iter_perf=None, outputFilename=No
     }, 
     prefer_skip_nested_validation=True
 )
-def show_feature_importance(reg, X_test, y_test, features=None, outputFilename=None): # https://github.com/huangyiru123/symbolic-regression-and-classfier-based-on-NLP/blob/main/%E7%AC%A6%E5%8F%B7%E5%88%86%E7%B1%BBNLP.ipynb
+def show_feature_importance(reg, X_test, y_test, features=None, n_jobs=None, n_repeats=20, outputFilename=None): # https://github.com/huangyiru123/symbolic-regression-and-classfier-based-on-NLP/blob/main/%E7%AC%A6%E5%8F%B7%E5%88%86%E7%B1%BBNLP.ipynb
     # Get feature-importance scores
 
     if not features and hasattr(reg.estimators_[0], 'feature_names'):
         features = reg.estimators_[0].feature_names
 
-    rept = 20
-    #rept = 3
     start_time = time.time()
-    result = permutation_importance(reg, X_test, y_test, n_repeats=rept)
+    result = permutation_importance(reg, X_test, y_test, n_repeats=n_repeats, n_jobs=n_jobs)
     elapsed_time = time.time() - start_time
     print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
 
