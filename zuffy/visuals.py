@@ -271,7 +271,7 @@ def graphviz_tree(
             extra = f" ({e._program.raw_fitness_:3.3f})"
         else:
             extra = ""
-        wta_ports += "<td port='port_%d'>%s</td>" % (idx, targetFeatureName + '=' + str(targetClassNames[idx]) + extra ) # 'class_' + str(idx))
+        wta_ports += "<td port='port_%d'>%s</td>" % (idx, str(targetFeatureName) + '=' + str(targetClassNames[idx]) + extra ) # 'class_' + str(idx))
 
     out += ('%d [label=%s, color="%s", shape=plaintext, width=4, fontname="Helvetica"] ;\n'
                 % (wta_id, f"<<table border='1' cellborder='1' bgColor='{rootBGColor}'><tr><td colspan='{len(fptgp.estimators_)}'>{rootText}</td></tr><tr>{wta_ports}</tr></table>>", 'black'))

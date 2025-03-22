@@ -393,3 +393,89 @@ def _WTA3(a, b, c):
     #return np.array([a, b, c]) # pom added no.array
 
 #WTA3 = functions.make_function(function=_WTA3, name='WTA3', arity=3)
+
+def lukasiewicz_t_norm(x0, x1):
+    """
+    Calculate the Łukasiewicz t-norm of two values.
+
+    Parameters:
+    a (float): First value, should be in the range [0, 1].
+    b (float): Second value, should be in the range [0, 1].
+
+    Returns:
+    float: The Łukasiewicz t-norm of a and b.
+    """
+    return np.maximum(0, x0 + x1 - 1)
+
+LUKASIEWICZ = functions.make_function(function=lukasiewicz_t_norm,
+                        name='LUKASIEWICZ',
+                        arity=2) # "woo-kah-shev-itch"
+
+def hamacher_t_norm025(x0, x1):
+    """
+    Compute the Hamacher T-norm for given values a, b and parameter lambda_param.
+
+    Parameters:
+    a (float): First value, should be in the range [0, 1].
+    b (float): Second value, should be in the range [0, 1].
+    lambda_param (float): Parameter lambda, should be >= 0.
+
+    Returns:
+    float: The Hamacher T-norm of a and b.
+    """
+    lambda_param = 0.25
+
+    if not (0 <= np.any(x0) <= 1 and 0 <= np.any(x1) <= 1):
+        raise ValueError("Inputs x0 and x1 must be in the range [0, 1].")
+    if lambda_param < 0:
+        raise ValueError("Parameter lambda_param must be non-negative.")
+
+    numerator = x0 * x1
+    denominator = lambda_param + (1 - lambda_param) * (x0 + x1 - x0 * x1)
+    
+    return numerator / denominator
+
+HAMACHER025 = functions.make_function(function=hamacher_t_norm025,
+                        name='HAMACHER025',
+                        arity=2)
+
+
+def hamacher_t_norm050(x0, x1):
+    """
+    Compute the Hamacher T-norm for given values a, b and parameter lambda_param.
+
+    Parameters:
+    a (float): First value, should be in the range [0, 1].
+    b (float): Second value, should be in the range [0, 1].
+    lambda_param (float): Parameter lambda, should be >= 0.
+
+    Returns:
+    float: The Hamacher T-norm of a and b.
+    """
+    lambda_param = 0.50
+
+    if not (0 <= np.any(x0) <= 1 and 0 <= np.any(x1) <= 1):
+        raise ValueError("Inputs x0 and x1 must be in the range [0, 1].")
+    if lambda_param < 0:
+        raise ValueError("Parameter lambda_param must be non-negative.")
+
+    numerator = x0 * x1
+    denominator = lambda_param + (1 - lambda_param) * (x0 + x1 - x0 * x1)
+    
+    return numerator / denominator
+
+HAMACHER050 = functions.make_function(function=hamacher_t_norm050,
+                        name='HAMACHER050',
+                        arity=2)
+
+def product(x0, x1):
+    """
+    Compute the product of x0 and x1
+    """
+    numerator = x0 * x1
+    return numerator
+
+PRODUCT = functions.make_function(function=product,
+                        name='PRODUCT',
+                        arity=2)
+
