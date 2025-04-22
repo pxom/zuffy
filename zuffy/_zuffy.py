@@ -273,7 +273,7 @@ array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         "metric":               [StrOptions({'log loss'})], # needs to allow for a custom metric
         "multiclassifier":      [StrOptions({'OneVsRestClassifier','OneVsOneClassifier'})],
         #"n_components":         [Interval(numbers.Integral, 1, None, closed="left"), None],
-        "n_jobs":               [Interval(numbers.Integral, 1, None, closed="left")],
+        "n_jobs":               [Interval(numbers.Integral, -1, None, closed="left")],
         "p_crossover":          [Interval(numbers.Real, 0, 1, closed="both")],
         "p_hoist_mutation":     [Interval(numbers.Real, 0, 1, closed="both")],
         "p_point_mutation":     [Interval(numbers.Real, 0, 1, closed="both")],

@@ -451,8 +451,8 @@ def do_model_dt(X, y, features, outfilename):
     if 1:
         plt.figure(figsize=(10, 10))  # Width: 10 inches, Height: 6 inches   # adjust this depending on depth/width of tree?
 
-    tree.plot_tree(est_dt, featureNames=features, filled=True, rounded=True,fontsize=6) #produces squashed trees
-    tree.export_text(est_dt, featureNames=features)
+    tree.plot_tree(est_dt, feature_names=features, filled=True, rounded=True,fontsize=6) #produces squashed trees
+    tree.export_text(est_dt, feature_names=features)
     t = plt.title('Decision Tree version of our FPT')  
     print('export tree gives:\n',t)
     #plt.tight_layout()

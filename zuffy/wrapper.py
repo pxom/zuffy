@@ -30,6 +30,7 @@ class ZuffyFitIterator:
     performance = None
     best_est = None
     best_score = None
+    smallest_tree = None
 
     def __init__(self, fptgp, fuzzy_X, y, n_iter = 5, split_at=0.2, random_state=0):
         self.fptgp = fptgp
@@ -85,6 +86,7 @@ class ZuffyFitIterator:
         self.best_score = best_score
         self.iter_perf = iter_perf
         self.best_iter = best_iter
+        self.smallest_tree = smallest_tree
         #return best_est, best_score, iter_perf, best_iter
 
     @validate_params( 
@@ -164,6 +166,9 @@ class ZuffyFitIterator:
     
     def getBestIter(self):
         return self.best_iter
+    
+    def getSmallestTree(self):
+        return self.smallest_tree
     
     def getBestClass(self):
         best_class_score = -1

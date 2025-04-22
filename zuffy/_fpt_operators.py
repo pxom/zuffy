@@ -407,9 +407,9 @@ def lukasiewicz_t_norm(x0, x1):
     """
     return np.maximum(0, x0 + x1 - 1)
 
-LUKASIEWICZ = functions.make_function(function=lukasiewicz_t_norm,
+LUKASIEWICZ = functions.make_function(function=lukasiewicz_t_norm, # "woo-kah-shev-itch"
                         name='LUKASIEWICZ',
-                        arity=2) # "woo-kah-shev-itch"
+                        arity=2) 
 
 def hamacher_t_norm025(x0, x1):
     """
