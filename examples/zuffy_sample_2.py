@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn import metrics
 from zuffy.zuffy import ZuffyClassifier, functions, visuals
-from zuffy.zuffy.wrapper import ZuffyFitIterator
+from zuffy.zuffy.zwrapper import ZuffyFitIterator
 import zuffy.zuffy._fpt_operators 
 from zuffy.zuffy._fpt_operators import MAXIMUM, MINIMUM, COMPLEMENT, CONCENTRATOR, DILUTER
 from gplearn.functions import _Function

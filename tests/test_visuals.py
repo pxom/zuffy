@@ -3,8 +3,8 @@ Testing the FPTGP visual functions.
 """
  # Authors: scikit-learn-contrib developers
 # License: BSD 3 clause
-from zuffy import ZuffyClassifier, functions, visuals
-from zuffy.visuals import ObjectColor, FeatureColor, OperatorColor, export_graphviz, graphviz_tree
+from zuffy import ZuffyClassifier
+from zuffy.visuals import ObjectColor, FeatureColor, OperatorColor, graphviz_tree
 
 def test_FeatureColor():
     #x = trimf(1, [1, 5, 9])
@@ -73,7 +73,7 @@ def test_ObjectColor():
 def test_export_graphviz():
     X = [[1,2,2],[1,1,1],[2,2,2]]
     y = [0,1,2]
-    fptgp = ZuffyClassifier(verbose=1, population_size=100, generations=5)
+    fptgp = ZuffyClassifier(verbose=1, population_size=10, generations=2)
     est   = fptgp.fit(X, y)
     #res = FPTGP_fit_iterator(fptgp, X, y, n_iter=3, split_at=0.25, random_state=77)
 

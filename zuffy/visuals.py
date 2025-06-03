@@ -18,8 +18,10 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.inspection import permutation_importance
 from sklearn.utils._param_validation import StrOptions, Interval, Options, validate_params, HasMethods
 import numbers # for scikit learn Interval
+from zuffy.zuffy._visuals_color_assignment import OperatorColorAssigner, FeatureColorAssigner
 
-class ObjectColor:
+
+class UNUSED_ObjectColor:
     '''
     This class can be used for managing the color of an object to ensure that
     each instance of that object uses the same color and new instances are given
@@ -46,16 +48,22 @@ class ObjectColor:
             return cmap[next_color_id]
 
 
-class FeatureColor(ObjectColor):
-
+class UNUSED_FeatureColor(UNUSED_ObjectColor):
+    '''
+    This class controls the colours of features in the tree.
+    '''
     def __init__(self, color_list=None):
+        '''
+        color_list : list of color codes
+        '''
+
         if color_list == None:
             color_list = self.def_feature_colors
         else:
             color_list.extend(self.def_feature_colors)
         super().__init__(color_list)
 
-class OperatorColor(ObjectColor):
+class UNUSED_OperatorColor(UNUSED_ObjectColor):
 
     def __init__(self, color_list=None):
         if color_list == None:
@@ -64,7 +72,7 @@ class OperatorColor(ObjectColor):
             color_list.extend(self.def_operator_colors)
         super().__init__(color_list)
 
-def addCR(a_string):
+def _add_CR(a_string):
     '''
     Replace a bar character with a carriage return.
     This is used to make feature names more presentable.
@@ -76,11 +84,14 @@ def addCR(a_string):
 
     Returns
     -------
-        A string containing the result of replacing | with \n
+        A string containing the result of replacing | with a carriage return character.
     '''
     return a_string.replace("|","\n")
 
-def add_importance(feature):
+def _add_importance(feature):
+    '''
+    Adds a measure of the importance of the selected feature.
+    '''
     if not isinstance(feature,list) or len(feature) != 3:
         raise ValueError(f"The Feature Importance dictionary does not contain three elements (mean, stdev, rank) for this feature {feature}.")
     
@@ -94,18 +105,18 @@ def add_importance(feature):
     extra = f'<font point-size="14"><b>{f_rank}</b>: {round(f_mean,3)} &plusmn; {round(f_std,3)}</font>'
     return extra
         
-def output_node(i, node, featureNames, FeatureColorx, impFeat=None):
+def _output_node(i, node, featureNames, FeatureColor, impFeat=None):
     if isinstance(node, int):
         if featureNames is None:
             feature_name = 'X%s' % node
         else:
             feature_name = featureNames[node]
 
-        fill = FeatureColorx.getColor(feature_name)
+        fill = FeatureColor.get_color(feature_name)
 
         extra = ""
         if impFeat and feature_name in impFeat:
-            extra = add_importance(impFeat[feature_name])
+            extra = _add_importance(impFeat[feature_name])
 
         feature_name = feature_name.replace('|', '<br/>')
 
@@ -117,7 +128,7 @@ def output_node(i, node, featureNames, FeatureColorx, impFeat=None):
                   %s\
                   </table>>,\
                   color="black", shape=none] ;\n'
-                    % (i, fill, addCR(feature_name), html_cell))
+                    % (i, fill, _add_CR(feature_name), html_cell))
     else:
         output += ('%d [label="%.3f", fillColor="%s"] ;\n'
                     % (i, node, fill))
@@ -132,12 +143,14 @@ def sanitize_names(features_names: list[object]) -> list[str]:
         sanitised.append(html.escape(str(f)))
     return sanitised
 
-def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillColor='green', operator_col_fn=OperatorColor(), feature_col_fn=FeatureColor(), impFeat=None):
+def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillColor='green', operator_col_fn=OperatorColorAssigner(), feature_col_fn=FeatureColorAssigner(), impFeat=None):
     '''
     Returns a string, Graphviz script for visualizing the program.
 
-    Parameters TO BE DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TO BE DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TO BE DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    Parameters
     ----------
+    TO BE DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TO BE DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TO BE DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     fade_nodes : list, optional
         A list of node indices to fade out for showing which were removed
         during evolution.
@@ -157,19 +170,19 @@ def export_graphviz(program, featureNames=None, fade_nodes=None, start=0, fillCo
     terminals = []
     output = ''
     # Initialise the color switchers
-    operatorColorx = operator_col_fn
-    FeatureColorx  = feature_col_fn
+    operatorColor = operator_col_fn
+    FeatureColor  = feature_col_fn
 
     for i, node in enumerate(program.program):
         i = i + start
         fill = fillColor
         if isinstance(node, _Function):
             terminals.append([node.arity, i])
-            fill = operatorColorx.getColor(node.name)
+            fill = operatorColor.get_color(node.name)
             output += ('%d [label="%s", style=filled, fillColor="%s"] ;\n'
                         % (i, node.name, fill))
         else:
-            output += output_node(i, node, featureNames, FeatureColorx, impFeat)
+            output += _output_node(i, node, featureNames, FeatureColor, impFeat)
             if i == start:
                 # A degenerative program of only one node
                 return output
@@ -212,6 +225,7 @@ def graphviz_tree(
             treeName=None,
             impFeat=None,
             outputFilename='zuffy_output',
+            sourceFilename=None,
             bgColor='white',
             rootBGColor='grey',
             rootText='WTA',
@@ -220,18 +234,18 @@ def graphviz_tree(
             showFitness=False):
 
     # Initialise the color switchers
-    operatorColorx = OperatorColor(operColorList)
-    FeatureColorx  = FeatureColor(featColorList)
+    operatorColor = OperatorColorAssigner(operColorList)
+    FeatureColor  = FeatureColorAssigner(featColorList)
 
-    if not featureNames and hasattr(fptgp.estimator, 'feature_names'):
-        featureNames = fptgp.estimator.feature_names
+    if not featureNames and hasattr(fptgp.multi_.estimator, 'feature_names'):
+        featureNames = fptgp.multi_.estimator.feature_names
 
     featureNames = sanitize_names(featureNames)
 
     if 0:
         if targetNames is not None and len(list(targetNames))>0:  # this allows for both numpy array and list
-            if len(targetNames) < len(fptgp.estimators_):
-                raise ValueError(f'There are insufficient targetNames ({len(targetNames)}) supplied to represent each of the {len(fptgp.estimators_)} classes.')
+            if len(targetNames) < len(fptgp.multi_.estimators_):
+                raise ValueError(f'There are insufficient targetNames ({len(targetNames)}) supplied to represent each of the {len(fptgp.multi_.estimators_)} classes.')
             else:
                 targetNames  = sanitize_names(targetNames)
         else:
@@ -245,7 +259,7 @@ def graphviz_tree(
 
     # need to ensure no more than scale nodes
     scale = 1000
-    wta_id = (len(fptgp.estimators_) + 1) * scale
+    wta_id = (len(fptgp.multi_.estimators_) + 1) * scale
     wta_edges = ''
     wta_ports = ''
     out = 'digraph G {\n'
@@ -253,18 +267,15 @@ def graphviz_tree(
     out += f'fontname="Helvetica"\n'
     out += f'fontsize="22"\n'    # title size
     out += f'node [fontname="Helvetica"]\n'
-    #out += f'node [shape=none label=""]\n'
-    #out += f'node [imagescale=true]\n'
-    #out += f'n1 [image="fpt.png"]\n'
     if treeName:
         out += f'label="{treeName}"\n'
         out += f'labelloc  =  t\n'
-    for idx, e in enumerate(fptgp.estimators_):
+    for idx, e in enumerate(fptgp.multi_.estimators_):
         # This is the tree for class called targetClassNames[idx] 
         if not hasattr(e, "_program"):
             raise ValueError("The Classifier list is expected to have the _program attribute so that it can build the tree but is is missing.")
 
-        out += export_graphviz(e._program, start=idx*scale, fillColor='#{:06x}'.format(random.randint(0, 0xFFFFFF)), featureNames=featureNames, operator_col_fn=operatorColorx, feature_col_fn=FeatureColorx,impFeat=impFeat )
+        out += export_graphviz(e._program, start=idx*scale, fillColor='#{:06x}'.format(random.randint(0, 0xFFFFFF)), featureNames=featureNames, operator_col_fn=operatorColor, feature_col_fn=FeatureColor,impFeat=impFeat )
         wta_edges += '%d:%s -> %d;\n' % (wta_id, 'port_' + str(idx), idx*scale) # 'class_' + str(idx))
 
         if showFitness:
@@ -274,11 +285,15 @@ def graphviz_tree(
         wta_ports += "<td port='port_%d'>%s</td>" % (idx, str(targetFeatureName) + '=' + str(targetClassNames[idx]) + extra ) # 'class_' + str(idx))
 
     out += ('%d [label=%s, color="%s", shape=plaintext, width=4, fontname="Helvetica"] ;\n'
-                % (wta_id, f"<<table border='1' cellborder='1' bgColor='{rootBGColor}'><tr><td colspan='{len(fptgp.estimators_)}'>{rootText}</td></tr><tr>{wta_ports}</tr></table>>", 'black'))
+                % (wta_id, f"<<table border='1' cellborder='1' bgColor='{rootBGColor}'><tr><td colspan='{len(fptgp.multi_.estimators_)}'>{rootText}</td></tr><tr>{wta_ports}</tr></table>>", 'black'))
     out += wta_edges
     out += '}'
     graph = graphviz.Source(out)
     _ = graph.render(outputFilename, format='png', view=False, cleanup=True)
+    if sourceFilename is not None:
+        # Write the source to a file
+        with open(sourceFilename, 'w') as file:
+            file.write(out)
     return out, graph
 
 @validate_params( 
@@ -293,19 +308,19 @@ def graphviz_tree(
 def plot_evolution(model, target_classes=None, iter_perf=None, outputFilename=None):
 
     if target_classes is not None:
-        if len(target_classes) < len(model.estimators_):
-            raise ValueError(f'There are insufficient targetNames ({len(target_classes)}) supplied to represent each of the {len(model.estimators_)} classes.')
+        if len(target_classes) < len(model.multi_.estimators_):
+            raise ValueError(f'There are insufficient targetNames ({len(target_classes)}) supplied to represent each of the {len(model.multi_.estimators_)} classes.')
         else:
             target_classes  = sanitize_names(target_classes)
     else:
-        #target_classes  = ['Target_' + str(i) for i in range(len(model.estimators_))]
+        #target_classes  = ['Target_' + str(i) for i in range(len(model.multi_.estimators_))]
         target_classes  = model.classes_
 
-    hei=len(model.estimators_)
+    hei=len(model.multi_.estimators_)
     wid=3
     fig = plt.figure(figsize=(11, 2.5 * hei))
     gidx = 1
-    for idx, cls in enumerate(model.estimators_):
+    for idx, cls in enumerate(model.multi_.estimators_):
         #print('Model Class#', target_classes[idx])
 
         ax = fig.add_subplot(hei, wid, gidx)
@@ -360,8 +375,8 @@ def plot_evolution(model, target_classes=None, iter_perf=None, outputFilename=No
 def show_feature_importance(reg, X_test, y_test, features=None, n_jobs=None, n_repeats=20, outputFilename=None): # https://github.com/huangyiru123/symbolic-regression-and-classfier-based-on-NLP/blob/main/%E7%AC%A6%E5%8F%B7%E5%88%86%E7%B1%BBNLP.ipynb
     # Get feature-importance scores
 
-    if not features and hasattr(reg.estimators_[0], 'feature_names'):
-        features = reg.estimators_[0].feature_names
+    if not features and hasattr(reg.multi_.estimators_[0], 'feature_names'):
+        features = reg.multi_.estimators_[0].feature_names
 
     start_time = time.time()
     result = permutation_importance(reg, X_test, y_test, n_repeats=n_repeats, n_jobs=n_jobs)
@@ -392,7 +407,7 @@ def show_feature_importance(reg, X_test, y_test, features=None, n_jobs=None, n_r
     fig, ax = plt.subplots()
     plt.bar(imp_graph_name, imp_graph_val, color='#ffcc33')
     ax.set_title("Feature importances using permutation on full model")
-    ax.set_ylabel("TODO: Explain 'Mean accuracy decrease'")
+    ax.set_ylabel("Mean Accuracy Decrease")
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right', fontsize='small')
     fig.tight_layout()
     if outputFilename:

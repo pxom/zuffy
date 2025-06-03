@@ -37,12 +37,15 @@ def WA(a, b, x):
         This a sample.
 
     References
-    1. Ho, T.K., 1995, August. Random decision forests. In Proceedings
+    ----------
+    1.  Ho, T.K., 1995, August. Random decision forests. In Proceedings
         of 3rd international conference on document analysis and
         recognition (Vol. 1, pp. 278-282). IEEE.
+
     2. Ho, T.K., 1998. The random subspace method for constructing
         decision forests. IEEE transactions on pattern analysis and
-        machine intelligence, 20(8), pp.832-844.                
+        machine intelligence, 20(8), pp.832-844.   
+
     """
     x = float(x)
     return x*a+(1-x)*b
@@ -128,34 +131,6 @@ def _DILUTER2(x0):
 DILUTER2 = functions.make_function(function=_DILUTER2,
                         name='DILUTER2',
                         arity=1)
-'''
-def _CONCENTRATOR3(x0):
-    """Closure of division by for zero denominator."""
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(x0 < 0, 0, x0**0.125)
-
-CONCENTRATOR3 = functions.make_function(function=_CONCENTRATOR3,
-                        name='CONCENTRATOR3',
-                        arity=1)
-
-def _CONCENTRATOR4(x0):
-    """Closure of division by for zero denominator."""
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(x0 < 0, 0, x0**(1/16))
-
-CONCENTRATOR4 = functions.make_function(function=_CONCENTRATOR4,
-                        name='CONCENTRATOR4',
-                        arity=1)
-
-def _CONCENTRATOR8(x0):
-    """Closure of division by for zero denominator."""
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(x0 < 0, 0, x0**(1/32))
-
-CONCENTRATOR8 = functions.make_function(function=_CONCENTRATOR8,
-                        name='CONCENTRATOR8',
-                        arity=1)
-'''
 
 def _CONCENTRATOR(x0):
     return x0**2
@@ -479,3 +454,31 @@ PRODUCT = functions.make_function(function=product,
                         name='PRODUCT',
                         arity=2)
 
+'''
+    def _CONCENTRATOR3(x0):
+        """Closure of division by for zero denominator."""
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(x0 < 0, 0, x0**0.125)
+
+    CONCENTRATOR3 = functions.make_function(function=_CONCENTRATOR3,
+                            name='CONCENTRATOR3',
+                            arity=1)
+
+    def _CONCENTRATOR4(x0):
+        """Closure of division by for zero denominator."""
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(x0 < 0, 0, x0**(1/16))
+
+    CONCENTRATOR4 = functions.make_function(function=_CONCENTRATOR4,
+                            name='CONCENTRATOR4',
+                            arity=1)
+
+    def _CONCENTRATOR8(x0):
+        """Closure of division by for zero denominator."""
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(x0 < 0, 0, x0**(1/32))
+
+    CONCENTRATOR8 = functions.make_function(function=_CONCENTRATOR8,
+                            name='CONCENTRATOR8',
+                            arity=1)
+'''

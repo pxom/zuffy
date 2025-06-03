@@ -7,11 +7,15 @@ This module contains the zuffy Wrappers and supporting methods and functions.
 import time
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV # used to determine if we are using Grid Search
 from sklearn.metrics import accuracy_score
 from sklearn.utils._param_validation import StrOptions, Interval, Options, validate_params
 import numbers # for scikit learn Interval
 
 
+'''
+Explanation of parameter validation here.  This does not get included in the doco!
+'''
 @validate_params( 
     {
     "fuzzy_X":      ["array-like"],
@@ -24,15 +28,24 @@ import numbers # for scikit learn Interval
 )
 class ZuffyFitIterator:
     '''
-    ZuffyFitIterator documentation to be done.
+    Repeatedly fits a Zuffy classifier on fuzzified input data and evaluates performance,
+    tracking the best estimator and scoring statistics across iterations.
     '''
 
     performance = None
     best_est = None
-    best_score = None
+    best_score_ = None
     smallest_tree = None
 
     def __init__(self, fptgp, fuzzy_X, y, n_iter = 5, split_at=0.2, random_state=0):
+        '''
+        Parameters:
+        -----------
+        fptgp : A Zuffy Classifier
+
+        fuzzy_X: Fuzzified feature set
+
+        '''
         self.fptgp = fptgp
 
         fptgp._validate_params()
@@ -45,12 +58,27 @@ class ZuffyFitIterator:
         self.performIteration(fptgp, fuzzy_X, y)
 
     def performIteration(self, fptgp, fuzzy_X, y):
-        '''
-        performIteration documentation to be done.
-        '''
+        """Iteratively generate a FPT.
+
+        Parameters
+        ----------
+        fptgp : a Zuffy classifier
+            The training input samples.
+
+        fuzzy_X : array-like, shape (n_samples, n_features)
+            A fuzzified set of features.
+
+        y : array-like, shape (n_samples,)
+            The target values. An array of int.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         # now call the iter function to split and train the dataset n_iter times
 
-        best_score = -np.inf
+        best_score_ = -np.inf
         best_iter  = -np.inf
         smallest_tree  = np.inf
         iter_perf = []
@@ -59,35 +87,45 @@ class ZuffyFitIterator:
                 #self.verbose_out(f"{iter=}")
                 iter_time = time.time()
                 if self.random_state != None:
+                    # change random_state consistently so that we don't reuse the same randomisation in each iteration
                     rs = self.random_state + iter
                 else:
                     rs = self.random_state
                 score, est_gp, class_scores = self.ZuffyFitJob(fptgp, fuzzy_X, y, split_at=self.split_at, random_state=rs)
                 sum_scores += score
                 self.verbose_out(f"{class_scores=}")
+                
+                # est_gp may not be Zuffy - it could be a GridSearchCV
+                if isinstance(est_gp, GridSearchCV):
+                    est_list = est_gp.best_estimator_
+                else:
+                    est_list = est_gp
+
                 # calculate the size of the model
                 len_progs = 0
-                for e in est_gp.estimators_:
-                        len_progs += len(e._program.program)
+                for e in est_list.multi_.estimators_:
+                        if hasattr(e, '_program'):
+                            len_progs += len(e._program.program)
                 self.verbose_out(f'Tree size is {len_progs}')
+
                 iter_perf.append([score, len_progs, class_scores])
-                if (score > best_score) or ((score == best_score) and (len_progs < smallest_tree) ):
+                if (score > best_score_) or ((score == best_score_) and (len_progs < smallest_tree) ):
                     best_iter = iter
                     best_est = est_gp
-                    best_score = score
+                    best_score_ = score
                     smallest_tree = len_progs
                     self.verbose_out(f'\aNew leader with score {score} and size {len_progs}')
                 iter_dur = round(time.time() - iter_time,0)
                 avg_score = sum_scores/(iter +1)
-                self.verbose_out(f'Duration of iteration #{iter} is {iter_dur}s # Best so far: {best_score:.5f}/{smallest_tree}  Avg: {avg_score:.5f}')
+                self.verbose_out(f'Duration of iteration #{iter} is {iter_dur}s # Best so far: {best_score_:.5f}/{smallest_tree}  Avg: {avg_score:.5f}')
 
         self.verbose_out(f"Finished iterating - {best_iter=}")
         self.best_est = best_est
-        self.best_score = best_score
+        self.best_score_ = best_score_
         self.iter_perf = iter_perf
         self.best_iter = best_iter
         self.smallest_tree = smallest_tree
-        #return best_est, best_score, iter_perf, best_iter
+        #return best_est, best_score_, iter_perf, best_iter
 
     @validate_params( 
         {
@@ -129,6 +167,7 @@ class ZuffyFitIterator:
                     #    best_models[cls] = {'model': clf, 'score': score}
                 else:
                     self.verbose_out(f'class {cls} is not present in this split.')
+                    score_cnt = 1
             #avg_score = round(sum_scores/len(class_scores),5)
             avg_score = round(sum_scores/score_cnt,5)
             #self.verbose_out(f"{avg_score=}\nDiff: {round(avg_score - score,5)=}")
@@ -159,9 +198,12 @@ class ZuffyFitIterator:
         '''
         getBestScore documentation to be done.
         '''
-        return self.best_score
+        return self.best_score_
     
     def getPerformance(self):
+        '''
+        Returns the performance metrics
+        '''
         return self.iter_perf
     
     def getBestIter(self):

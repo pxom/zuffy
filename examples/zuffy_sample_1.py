@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.datasets import load_iris
 from zuffy.zuffy import ZuffyClassifier, functions, visuals
-from zuffy.zuffy.wrapper import ZuffyFitIterator
+from zuffy.zuffy.zwrapper import ZuffyFitIterator
 
 iris = load_iris()
 dataset = pd.DataFrame(data=iris.data, columns=iris.feature_names)
@@ -28,4 +28,4 @@ visuals.graphviz_tree(
     targetClassNames=targetClassNames,
     featureNames=fuzzy_features_names,
     treeName=f"Iris Dataset (best accuracy: {res.getBestScore():.3f})",
-    outputFilename='sample1_fpt_{res.getBestScore()*1000:.0f}')
+    outputFilename=f'sample1_fpt_{res.getBestScore()*1000:.0f}')

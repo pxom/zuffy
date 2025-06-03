@@ -6,12 +6,17 @@ Initialisation module for Zuffy.
 Zuffy is a sklearn compatible open source python library for the exploration of Fuzzy Pattern Trees.
 """
 
-from ._zuffy import ZuffyClassifier
+from .zuffy import ZuffyClassifier
 
-__version__ = '0.0.dev0'
+try:
+    from importlib.metadata import version
+    __version__ = version("zuffy")
+except Exception:
+    __version__ = "0.0.dev0"
 
 __all__ = [
     "ZuffyClassifier",
+    "zwrapper",
     "functions",
     "visuals",
     "__version__",
