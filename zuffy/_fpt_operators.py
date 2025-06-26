@@ -1,484 +1,557 @@
 """
-@author: POM <zuffy@mahoonium.ie>
-License: BSD 3 clause
-This module contains the available set of FPT operators.
+This module contains a set of fuzzy logic operators designed for use with gplearn,
+suitable for constructing Fuzzy Pattern Trees (FPT). Each operator performs
+a specific mathematical operation on NumPy arrays, representing fuzzy set memberships.
 """
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import numpy as np
 from gplearn import functions
+from typing import Union
 
-def WA(a, b, x):
+# Define type alias for clarity
+ArrayLike = Union[np.ndarray, float]
+
+def _weighted_average(a: ArrayLike, b: ArrayLike, x: float) -> ArrayLike:
     """
-    Weighted Average: This returns x*a + (1-x)*b
-
-    NB: This should be highlighted in an Attention box.
-
-    Warning: This should be in a Warning box.
+    Calculates the Weighted Average: x*a + (1-x)*b.
 
     Parameters
     ----------
-    a: np.array, default=None
-        The first matrix to be compared.
+    a : np.ndarray or float
+        The first operand, typically a fuzzy set membership value or array.
+    b : np.ndarray or float
+        The second operand, typically a fuzzy set membership value or array.
+    x : float
+        The weight to apply to 'a', with (1-x) applied to 'b'.
+        Should be in the range [0, 1] for typical fuzzy operations.
 
-    b: np.array, default=None
-        The second matrix to be compared.
+    Returns
+    -------
+    np.ndarray or float
+        The result of the weighted average operation.
+    """
+    # Ensure x is a float for consistent calculations
+    x = float(x)
+    return x * a + (1 - x) * b
 
-    x: float, default=None
-        The weight to apply to matrix a and the complement of which is applied to b.
+def _ordered_weighted_average(a: ArrayLike, b: ArrayLike, x: float) -> ArrayLike:
+    """
+    Calculates the Ordered Weighted Average (OWA): x*max(a, b) + (1-x)*min(a, b).
 
-    Attributes
+    Parameters
     ----------
-    root: Node
-        This a sample.
+    a : np.ndarray or float
+        The first operand.
+    b : np.ndarray or float
+        The second operand.
+    x : float
+        The weight to apply to the maximum of 'a' and 'b', with (1-x) applied to the minimum.
+        Should be in the range [0, 1].
 
-    _impurity_gain_calculation_func: function
-        This a sample.
-
-    References
-    ----------
-    1.  Ho, T.K., 1995, August. Random decision forests. In Proceedings
-        of 3rd international conference on document analysis and
-        recognition (Vol. 1, pp. 278-282). IEEE.
-
-    2. Ho, T.K., 1998. The random subspace method for constructing
-        decision forests. IEEE transactions on pattern analysis and
-        machine intelligence, 20(8), pp.832-844.   
-
+    Returns
+    -------
+    np.ndarray or float
+        The result of the OWA operation.
     """
     x = float(x)
-    return x*a+(1-x)*b
+    return x * np.maximum(a, b) + (1 - x) * np.minimum(a, b)
 
-def OWA(a, b, x):
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-def minimum(a, b):
-    return np.minimum(a, b)
-
-def maximum(a, b):
-    return np.maximum(a, b)
-    
-def DILUTER(b):
-    return b**0.5
-
-def DILUTER3(b):
-    return b**(1/3)
-
-def DILUTER4(b):
-    return b**0.25
-
-def concentrator(b):
-    return b**2
-
-def concentrator3(b):
-    return b**3
-
-def concentrator4(b):
-    return b**4
-
-def fuzzy_AND(a, b):
-    return a * b
-
-def fuzzy_OR(a, b):
-    return a + b - a*b
-
-def complement(b):
-    return 1 - b
-
-def _MAXIMUM(x0, x1):
+def _minimum(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
-    When using Fuzzy Sets, the Maximum function performs the equivalent of a boolean OR.
-    """
-    return np.maximum(x0, x1)
+    Performs the Minimum operation, equivalent to a boolean AND in fuzzy sets.
 
-MAXIMUM = functions.make_function(function=_MAXIMUM,
-                        name='MAXIMUM/or',
-                        arity=2)
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The first operand.
+    x1 : np.ndarray or float
+        The second operand.
 
-def _MINIMUM(x0, x1):
-    """
-    When using Fuzzy Sets, the Minimum function performs the equivalent of a boolean AND.
+    Returns
+    -------
+    np.ndarray or float
+        The element-wise minimum of x0 and x1.
     """
     return np.minimum(x0, x1)
 
-MINIMUM = functions.make_function(function=_MINIMUM,
-                        name='MINIMUM/and',
-                        arity=2)
+def _maximum(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
+    """
+    Performs the Maximum operation, equivalent to a boolean OR in fuzzy sets.
 
-def _COMPLEMENT(x0):
-    return 1 - x0
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The first operand.
+    x1 : np.ndarray or float
+        The second operand.
 
-COMPLEMENT = functions.make_function(function=_COMPLEMENT,
-                        name='COMPLEMENT/not',
-                        arity=1)
+    Returns
+    -------
+    np.ndarray or float
+        The element-wise maximum of x0 and x1.
+    """
+    return np.maximum(x0, x1)
 
-def _DILUTER(x0):
-    """Closure of division by for zero denominator."""
+def _diluter(x0: ArrayLike) -> ArrayLike:
+    """
+    Applies a Diluter operation (square root) to fuzzy set memberships.
+    Typically used to "fuzzify" or expand the meaning of a fuzzy set.
+    Ensures non-negative output for non-negative input.
+
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The input fuzzy set membership value or array.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the dilution (square root) operation.
+    """
     with np.errstate(divide='ignore', invalid='ignore'):
+        # Ensure that negative values don't result in NaNs from sqrt
         return np.where(x0 < 0, 0, x0**0.5)
 
-DILUTER = functions.make_function(function=_DILUTER,
-                        name='DILUTER',
-                        arity=1)
+def _diluter_power(x0: ArrayLike, power: float) -> ArrayLike:
+    """
+    Applies a generalized Diluter operation (x0^power) to fuzzy set memberships.
+    Ensures non-negative output for non-negative input.
 
-def _DILUTER2(x0):
-    """Closure of division by for zero denominator."""
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The input fuzzy set membership value or array.
+    power : float
+        The power to raise x0 to (e.g., 1/3 for cube root, 0.25 for fourth root).
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the dilution operation.
+    """
     with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(x0 < 0, 0, x0**0.25)
+        return np.where(x0 < 0, 0, x0**power)
 
-DILUTER2 = functions.make_function(function=_DILUTER2,
-                        name='DILUTER2',
-                        arity=1)
+def _concentrator(x0: ArrayLike) -> ArrayLike:
+    """
+    Applies a Concentrator operation (squaring) to fuzzy set memberships.
+    Typically used to "sharpen" or narrow the meaning of a fuzzy set.
 
-def _CONCENTRATOR(x0):
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The input fuzzy set membership value or array.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the concentration (squaring) operation.
+    """
     return x0**2
 
-CONCENTRATOR = functions.make_function(function=_CONCENTRATOR,
-                        name='CONCENTRATOR',
-                        arity=1)
+def _concentrator_power(x0: ArrayLike, power: int) -> ArrayLike:
+    """
+    Applies a generalized Concentrator operation (x0^power) to fuzzy set memberships.
 
-def _CONCENTRATOR2(x0):
-    return x0**4
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The input fuzzy set membership value or array.
+    power : int
+        The integer power to raise x0 to (e.g., 3 for cubing, 4 for power of 4).
 
-CONCENTRATOR2 = functions.make_function(function=_CONCENTRATOR2,
-                        name='CONCENTRATOR2',
-                        arity=1)
+    Returns
+    -------
+    np.ndarray or float
+        The result of the concentration operation.
+    """
+    return x0**power
 
-def _INTENSIFIER(x0): # from Expanding the definitions of linguistic hedges
-    """Closure of division by for zero denominator."""
+def _fuzzy_and(a: ArrayLike, b: ArrayLike) -> ArrayLike:
+    """
+    Calculates the fuzzy AND using the product (a * b) t-norm.
+
+    Parameters
+    ----------
+    a : np.ndarray or float
+        The first fuzzy set membership value or array.
+    b : np.ndarray or float
+        The second fuzzy set membership value or array.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the fuzzy AND operation.
+    """
+    return a * b
+
+def _fuzzy_or(a: ArrayLike, b: ArrayLike) -> ArrayLike:
+    """
+    Calculates the fuzzy OR using the probabilistic sum (a + b - a*b) t-conorm.
+
+    Parameters
+    ----------
+    a : np.ndarray or float
+        The first fuzzy set membership value or array.
+    b : np.ndarray or float
+        The second fuzzy set membership value or array.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the fuzzy OR operation.
+    """
+    return a + b - a * b
+
+def _complement(x0: ArrayLike) -> ArrayLike:
+    """
+    Calculates the fuzzy complement (1 - x0).
+
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The fuzzy set membership value or array.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the fuzzy complement operation.
+    """
+    return 1 - x0
+
+def _intensifier(x0: ArrayLike) -> ArrayLike:
+    """
+    Applies an Intensifier linguistic hedge (from "Expanding the definitions
+    of linguistic hedges"). This operation increases membership values above 0.5
+    and decreases those below 0.5, making the set "more true".
+
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The input fuzzy set membership value or array.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result of the intensifier operation.
+    """
+    n = 2 # A common parameter for intensifier
     with np.errstate(divide='ignore', invalid='ignore'):
-        n = 2
         return np.where(
-                x0 < 0,
-                0,
-                np.where(x0 < 0.5,
-                         0.5**(1-n) * (x0**n),
-                         1 - 0.5**(1-n) * (1 - x0)**n
-                )
+            x0 < 0,
+            0,
+            np.where(x0 < 0.5,
+                     0.5**(1-n) * (x0**n),
+                     1 - 0.5**(1-n) * (1 - x0)**n
+            )
         )
 
-INTENSIFIER = functions.make_function(function=_INTENSIFIER,
-                        name='INTENSIFIER',
-                        arity=1)
+def _diffuser(x0: ArrayLike) -> ArrayLike:
+    """
+    Applies a Diffuser linguistic hedge (from "Expanding the definitions
+    of linguistic hedges"). This operation decreases membership values above 0.5
+    and increases those below 0.5, making the set "less true" or "fuzzier".
 
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The input fuzzy set membership value or array.
 
-def _DIFFUSER(x0): # from Expanding the definitions of linguistic hedges
-    n = 2
+    Returns
+    -------
+    np.ndarray or float
+        The result of the diffuser operation.
+    """
+    n = 2 # A common parameter for diffuser
     with np.errstate(divide='ignore', invalid='ignore'):
-        n = 2
         return np.where(
-                x0 < 0,
-                0,
-                np.where(x0 < 0.5,
+            x0 < 0,
+            0,
+            np.where(x0 < 0.5,
                      0.5**(1 - 1/n) * x0**(1/n),
-                     1 - 0.5**(1-1/n) * (1 - x0)**(1/n)
-                )
+                     1 - 0.5**(1 - 1/n) * (1 - x0)**(1/n)
+            )
         )
 
-DIFFUSER = functions.make_function(function=_DIFFUSER,
-                        name='DIFFUSER',
-                        arity=1)
+def _if_gte(x1: ArrayLike, x2: ArrayLike) -> ArrayLike:
+    """
+    Returns x1 if x1 >= x2, otherwise returns x2.
 
+    Parameters
+    ----------
+    x1 : np.ndarray or float
+        The first operand.
+    x2 : np.ndarray or float
+        The second operand (threshold).
 
-
-def _SUB_AMT_025(x1):
-    return x1 - 0.25
-
-SUB_AMT_025 = functions.make_function(function=_SUB_AMT_025,
-                        name='SUB_AMT_025',
-                        arity=1)
-
-def _IFGTE(x1, x2):
+    Returns
+    -------
+    np.ndarray or float
+        The result based on the condition.
+    """
     return np.where(x1 >= x2, x1, x2)
 
-IFGTE = functions.make_function(function=_IFGTE,
-                        name='IFGTE',
-                        arity=2)
+def _if_gte_else(x1: ArrayLike, x2: ArrayLike, x3: ArrayLike, x4: ArrayLike) -> ArrayLike:
+    """
+    Returns x3 if x1 >= x2, otherwise returns x4.
 
-def _IFGTE2(x1, x2, x3, x4):
+    Parameters
+    ----------
+    x1 : np.ndarray or float
+        The comparison value.
+    x2 : np.ndarray or float
+        The threshold value.
+    x3 : np.ndarray or float
+        The value to return if the condition is true.
+    x4 : np.ndarray or float
+        The value to return if the condition is false.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result based on the condition.
+    """
     return np.where(x1 >= x2, x3, x4)
 
-IFGTE2 = functions.make_function(function=_IFGTE2,
-                        name='IFGTE2',
-                        arity=4)
+def _if_lt(x1: ArrayLike, x2: ArrayLike) -> ArrayLike:
+    """
+    Returns x1 if x1 < x2, otherwise returns x2.
 
-def _IFLT(x1, x2):
+    Parameters
+    ----------
+    x1 : np.ndarray or float
+        The first operand.
+    x2 : np.ndarray or float
+        The second operand (threshold).
+
+    Returns
+    -------
+    np.ndarray or float
+        The result based on the condition.
+    """
     return np.where(x1 < x2, x1, x2)
 
-IFLT = functions.make_function(function=_IFLT,
-                        name='IFLT',
-                        arity=2)
+def _if_lt_else(x1: ArrayLike, x2: ArrayLike, x3: ArrayLike, x4: ArrayLike) -> ArrayLike:
+    """
+    Returns x3 if x1 < x2, otherwise returns x4.
 
-def _IFLT2(x1, x2, x3, x4):
+    Parameters
+    ----------
+    x1 : np.ndarray or float
+        The comparison value.
+    x2 : np.ndarray or float
+        The threshold value.
+    x3 : np.ndarray or float
+        The value to return if the condition is true.
+    x4 : np.ndarray or float
+        The value to return if the condition is false.
+
+    Returns
+    -------
+    np.ndarray or float
+        The result based on the condition.
+    """
     return np.where(x1 < x2, x3, x4)
 
-IFLT2 = functions.make_function(function=_IFLT2,
-                        name='IFLT2',
-                        arity=4)
-
-def _WA_P1(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P1 = functions.make_function(function=_WA_P1,name='WA_P1',arity=2)
-
-def _WA_P2(a, b):
-    x = 0.2
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P2 = functions.make_function(function=_WA_P2,name='WA_P2',arity=2)
-
-def _WA_P3(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P3 = functions.make_function(function=_WA_P3,name='WA_P3',arity=2)
-
-def _WA_P4(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P4 = functions.make_function(function=_WA_P4,name='WA_P4',arity=2)
-
-def _WA_P5(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P5 = functions.make_function(function=_WA_P5,name='WA_P5',arity=2)
-
-def _WA_P6(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P6 = functions.make_function(function=_WA_P6,name='WA_P6',arity=2)
-
-def _WA_P7(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P7 = functions.make_function(function=_WA_P7,name='WA_P7',arity=2)
-
-def _WA_P8(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P8 = functions.make_function(function=_WA_P8,name='WA_P8',arity=2)
-
-def _WA_P9(a, b):
-    x = 0.1
-    x = float(x)
-    return x*a+(1-x)*b
-
-WA_P9 = functions.make_function(function=_WA_P9,name='WA_P9',arity=2)
-
-
-def _OWA_P1(a, b):
-    x = 0.1
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P1 = functions.make_function(function=_OWA_P1,name='OWA_P1',arity=2)
-
-def _OWA_P2(a, b):
-    x = 0.2
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P2 = functions.make_function(function=_OWA_P2,name='OWA_P2',arity=2)
-
-def _OWA_P3(a, b):
-    x = 0.3
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P3 = functions.make_function(function=_OWA_P3,name='OWA_P3',arity=2)
-
-def _OWA_P4(a, b):
-    x = 0.4
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P4 = functions.make_function(function=_OWA_P4,
-                        name='OWA_P4',
-                        arity=2)
-
-def _OWA_P5(a, b):
-    x = 0.5
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P5 = functions.make_function(function=_OWA_P5,name='OWA_P5',arity=2)
-
-def _OWA_P6(a, b):
-    x = 0.6
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P6 = functions.make_function(function=_OWA_P6,name='OWA_P6',arity=2)
-
-def _OWA_P7(a, b):
-    x = 0.7
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P7 = functions.make_function(function=_OWA_P7,name='OWA_P7',arity=2)
-
-def _OWA_P8(a, b):
-    x = 0.8
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P8 = functions.make_function(function=_OWA_P8,name='OWA_P8',arity=2)
-
-def _OWA_P9(a, b):
-    x = 0.9
-    x = float(x)
-    return x*np.maximum(a, b)+(1-x)*np.minimum(a, b)
-
-OWA_P9 = functions.make_function(function=_OWA_P9,name='OWA_P9',arity=2)
-
-#def _POINT_1(x):
-#    x = np.ones(x) * 0.1
-#    x = 0.1
-#    return x
-
-#POINT_1 = functions.make_function(function=_POINT_1,
-#                        name='POINT_1',
-#                        arity=1)
-
-# these WTA functions don't work because they don't return numpy arrays (which I fixed) and then don't return the same shape as input vectors so figure it out!
-def _WTA(a, b):
-    #return [a, b]
-    return [np.array(a), np.array(b)] # pom added no.array
-
-#WTA = functions.make_function(function=_WTA, name='WTA', arity=2)
-
-def _WTA3(a, b, c):
-    return [a, b, c]
-    #return np.array([a, b, c]) # pom added no.array
-
-#WTA3 = functions.make_function(function=_WTA3, name='WTA3', arity=3)
-
-def lukasiewicz_t_norm(x0, x1):
+def _lukasiewicz_t_norm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
-    Calculate the Łukasiewicz t-norm of two values.
+    Calculates the Łukasiewicz t-norm: max(0, x0 + x1 - 1).
 
-    Parameters:
-    a (float): First value, should be in the range [0, 1].
-    b (float): Second value, should be in the range [0, 1].
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        First value, typically in the range [0, 1].
+    x1 : np.ndarray or float
+        Second value, typically in the range [0, 1].
 
-    Returns:
-    float: The Łukasiewicz t-norm of a and b.
+    Returns
+    -------
+    np.ndarray or float
+        The Łukasiewicz t-norm of x0 and x1.
     """
     return np.maximum(0, x0 + x1 - 1)
 
-LUKASIEWICZ = functions.make_function(function=lukasiewicz_t_norm, # "woo-kah-shev-itch"
-                        name='LUKASIEWICZ',
-                        arity=2) 
-
-def hamacher_t_norm025(x0, x1):
+def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> ArrayLike:
     """
-    Compute the Hamacher T-norm for given values a, b and parameter lambda_param.
+    Computes the Hamacher T-norm.
 
-    Parameters:
-    a (float): First value, should be in the range [0, 1].
-    b (float): Second value, should be in the range [0, 1].
-    lambda_param (float): Parameter lambda, should be >= 0.
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        First value, should be in the range [0, 1].
+    x1 : np.ndarray or float
+        Second value, should be in the range [0, 1].
+    lambda_param : float
+        Parameter lambda, should be >= 0.
 
-    Returns:
-    float: The Hamacher T-norm of a and b.
+    Returns
+    -------
+    np.ndarray or float
+        The Hamacher T-norm of x0 and x1.
+
+    Raises
+    ------
+    ValueError
+        If inputs x0 or x1 are not in the range [0, 1] or if lambda_param is negative.
+        Note: `np.any()` is used here for array inputs, but for element-wise fuzzy
+        operations, it's often assumed inputs are already valid from upstream.
+        Consider removing explicit checks if performance is critical and inputs
+        are guaranteed by the framework.
     """
-    lambda_param = 0.25
+    # These checks are more robust if the inputs are single values or if
+    # it's critical to halt execution for *any* out-of-range value in an array.
+    # For general fuzzy set operations, often the domain [0,1] is assumed
+    # by design, so explicit checks might be omitted for performance.
 
-    if not (0 <= np.any(x0) <= 1 and 0 <= np.any(x1) <= 1):
-        raise ValueError("Inputs x0 and x1 must be in the range [0, 1].")
+    # pom do not raise error because make_function will trigger this. Rely on clip.
+    #if not (np.all((x0 >= 0) & (x0 <= 1)) and np.all((x1 >= 0) & (x1 <= 1))):
+    #    raise ValueError("Inputs x0 and x1 must be in the range [0, 1].")
     if lambda_param < 0:
         raise ValueError("Parameter lambda_param must be non-negative.")
 
     numerator = x0 * x1
     denominator = lambda_param + (1 - lambda_param) * (x0 + x1 - x0 * x1)
     
-    return numerator / denominator
+    # Handle potential division by zero for denominator == 0
+    # This specifically addresses the case where lambda_param is 0 and x0+x1-x0*x1 is also 0
+    with np.errstate(divide='ignore', invalid='ignore'):
+        result = np.where(denominator == 0, 0, numerator / denominator)
+        # Ensure result stays within [0, 1] range if any floating point inaccuracies occur
+        return np.clip(result, 0, 1)
 
-HAMACHER025 = functions.make_function(function=hamacher_t_norm025,
-                        name='HAMACHER025',
-                        arity=2)
-
-
-def hamacher_t_norm050(x0, x1):
+def _product_t_norm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
-    Compute the Hamacher T-norm for given values a, b and parameter lambda_param.
+    Computes the product t-norm (x0 * x1). This is the standard fuzzy AND.
 
-    Parameters:
-    a (float): First value, should be in the range [0, 1].
-    b (float): Second value, should be in the range [0, 1].
-    lambda_param (float): Parameter lambda, should be >= 0.
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        The first operand.
+    x1 : np.ndarray or float
+        The second operand.
 
-    Returns:
-    float: The Hamacher T-norm of a and b.
+    Returns
+    -------
+    np.ndarray or float
+        The product of x0 and x1.
     """
-    lambda_param = 0.50
+    return x0 * x1
 
-    if not (0 <= np.any(x0) <= 1 and 0 <= np.any(x1) <= 1):
-        raise ValueError("Inputs x0 and x1 must be in the range [0, 1].")
-    if lambda_param < 0:
-        raise ValueError("Parameter lambda_param must be non-negative.")
+# --- gplearn Function Definitions ---
+# These operators are wrapped for compatibility with gplearn's genetic programming framework.
 
-    numerator = x0 * x1
-    denominator = lambda_param + (1 - lambda_param) * (x0 + x1 - x0 * x1)
-    
-    return numerator / denominator
+MAXIMUM = functions.make_function(function=_maximum,
+                                  name='MAXIMUM/or',
+                                  arity=2)
 
-HAMACHER050 = functions.make_function(function=hamacher_t_norm050,
-                        name='HAMACHER050',
-                        arity=2)
+MINIMUM = functions.make_function(function=_minimum,
+                                  name='MINIMUM/and',
+                                  arity=2)
 
-def product(x0, x1):
-    """
-    Compute the product of x0 and x1
-    """
-    numerator = x0 * x1
-    return numerator
+COMPLEMENT = functions.make_function(function=_complement,
+                                     name='COMPLEMENT/not',
+                                     arity=1)
 
-PRODUCT = functions.make_function(function=product,
-                        name='PRODUCT',
-                        arity=2)
+DILUTER = functions.make_function(function=_diluter,
+                                  name='DILUTER',
+                                  arity=1)
 
-'''
-    def _CONCENTRATOR3(x0):
-        """Closure of division by for zero denominator."""
-        with np.errstate(divide='ignore', invalid='ignore'):
-            return np.where(x0 < 0, 0, x0**0.125)
+DILUTER3 = functions.make_function(function=lambda x0: _diluter_power(x0, 1/3),
+                                   name='DILUTER3',
+                                   arity=1)
 
-    CONCENTRATOR3 = functions.make_function(function=_CONCENTRATOR3,
-                            name='CONCENTRATOR3',
-                            arity=1)
+DILUTER4 = functions.make_function(function=lambda x0: _diluter_power(x0, 0.25),
+                                   name='DILUTER4',
+                                   arity=1)
 
-    def _CONCENTRATOR4(x0):
-        """Closure of division by for zero denominator."""
-        with np.errstate(divide='ignore', invalid='ignore'):
-            return np.where(x0 < 0, 0, x0**(1/16))
+CONCENTRATOR = functions.make_function(function=_concentrator,
+                                       name='CONCENTRATOR',
+                                       arity=1)
 
-    CONCENTRATOR4 = functions.make_function(function=_CONCENTRATOR4,
-                            name='CONCENTRATOR4',
-                            arity=1)
+CONCENTRATOR3 = functions.make_function(function=lambda x0: _concentrator_power(x0, 3),
+                                        name='CONCENTRATOR3',
+                                        arity=1)
 
-    def _CONCENTRATOR8(x0):
-        """Closure of division by for zero denominator."""
-        with np.errstate(divide='ignore', invalid='ignore'):
-            return np.where(x0 < 0, 0, x0**(1/32))
+CONCENTRATOR4 = functions.make_function(function=lambda x0: _concentrator_power(x0, 4),
+                                        name='CONCENTRATOR4',
+                                        arity=1)
 
-    CONCENTRATOR8 = functions.make_function(function=_CONCENTRATOR8,
-                            name='CONCENTRATOR8',
-                            arity=1)
-'''
+FUZZY_AND = functions.make_function(function=_fuzzy_and,
+                                    name='FUZZY_AND',
+                                    arity=2)
+
+FUZZY_OR = functions.make_function(function=_fuzzy_or,
+                                   name='FUZZY_OR',
+                                   arity=2)
+
+INTENSIFIER = functions.make_function(function=_intensifier,
+                                      name='INTENSIFIER',
+                                      arity=1)
+
+DIFFUSER = functions.make_function(function=_diffuser,
+                                   name='DIFFUSER',
+                                   arity=1)
+
+IFGTE = functions.make_function(function=_if_gte,
+                                name='IFGTE',
+                                arity=2)
+
+IFGTE2 = functions.make_function(function=_if_gte_else,
+                                 name='IFGTE2',
+                                 arity=4)
+
+IFLT = functions.make_function(function=_if_lt,
+                               name='IFLT',
+                               arity=2)
+
+IFLT2 = functions.make_function(function=_if_lt_else,
+                                name='IFLT2',
+                                arity=4)
+
+LUKASIEWICZ = functions.make_function(function=_lukasiewicz_t_norm,
+                                      name='LUKASIEWICZ',
+                                      arity=2)
+
+HAMACHER025 = functions.make_function(function=lambda x0, x1: _hamacher_t_norm(x0, x1, 0.25),
+                                      name='HAMACHER025',
+                                      arity=2)
+
+HAMACHER050 = functions.make_function(function=lambda x0, x1: _hamacher_t_norm(x0, x1, 0.50),
+                                      name='HAMACHER050',
+                                      arity=2)
+
+PRODUCT = functions.make_function(function=_product_t_norm,
+                                  name='PRODUCT',
+                                  arity=2)
+
+# --- Dynamic generation of fixed-parameter WA and OWA operators ---
+# This significantly reduces code duplication.
+
+def _generate_wa_operator(param: float):
+    """Generates a gplearn-compatible WA operator with a fixed weight."""
+    def wa_func(a: ArrayLike, b: ArrayLike) -> ArrayLike:
+        return _weighted_average(a, b, param)
+    wa_func.__name__ = f'_wa_op_param_{param}'.replace('.', '_')
+    return wa_func
+
+def _generate_owa_operator(param: float):
+    """Generates a gplearn-compatible OWA operator with a fixed weight."""
+    def owa_func(a: ArrayLike, b: ArrayLike) -> ArrayLike:
+        return _ordered_weighted_average(a, b, param)
+    owa_func.__name__ = f'_wa_op_param_{param}'.replace('.', '_')
+    return owa_func
+
+# Create WA_P1 to WA_P9
+for i in range(1, 10):
+    param_val = round(i * 0.1, 1) # Calculate parameter value (0.1, 0.2, ..., 0.9)
+    # Define the name as a string and use globals() to assign the dynamically created function
+    globals()[f'WA_P{i}'] = functions.make_function(function=_generate_wa_operator(param_val),
+                                                  name=f'WA_P{i}',
+                                                  arity=2)
+
+# Create OWA_P1 to OWA_P9
+for i in range(1, 10):
+    param_val = round(i * 0.1, 1) # Calculate parameter value (0.1, 0.2, ..., 0.9)
+    globals()[f'OWA_P{i}'] = functions.make_function(function=_generate_owa_operator(param_val),
+                                                   name=f'OWA_P{i}',
+                                                   arity=2)

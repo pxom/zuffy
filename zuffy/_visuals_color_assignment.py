@@ -1,10 +1,11 @@
 """
-@author: POM <zuffy@mahoonium.ie>
-License: BSD 3 clause
-Functions to handle the display of a FPT
-"""
+Functions to manage the selection of colors for the display of a Fuzzy Pattern Tree.
 
-# standardised by gemini
+This module provides a flexible way to assign consistent colors to different entities
+(like features and operators) within a visualization, ensuring unique colors are
+assigned sequentially from a predefined or custom pool.
+
+"""
 
 from typing import List, Dict, Optional
 
@@ -17,39 +18,31 @@ class ColorAssigner:
     before, it returns the previously assigned color. If the color pool is exhausted,
     it cycles back to the beginning of the pool.
 
-    Attributes
-    ----------
-    _DEFAULT_OPERATOR_COLORS : list[str]
-        Default hexadecimal color codes for operators, typically pale pastels.
-    _DEFAULT_FEATURE_COLORS : list[str]
-        Default hexadecimal color codes for features, typically strong, distinct colors.
+    Subclasses are expected to provide their specific default color pools.
     """
 
-    _DEFAULT_OPERATOR_COLORS: List[str] = [ # default list of operator colors (pale pastels)
-        '#ff999922', '#99ff9922', '#9999ff22', '#99ffff22',
-        '#ff99ff22', '#ffff9922',
-    ]
-    
-    _DEFAULT_FEATURE_COLORS: List[str] = [ # default list of feature colors (strong)
-        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-    ]
-
-    def __init__(self, color_pool: Optional[List[str]] = None) -> None:
+    def __init__(self, color_pool: List[str]) -> None:
         """
-        Initializes the ColorAssigner with a specified or default color pool.
+        Initializes the ColorAssigner with a specified color pool.
 
         Parameters
         ----------
-        color_pool : list[str], optional
+        color_pool : list of str
             A list of hexadecimal color codes to use as the color pool.
-            If None, subclasses should provide their specific default.
+            This list must not be empty.
+
+        Raises
+        ------
+        ValueError
+            If the `color_pool` is empty.
         """
-        if color_pool is None:
-            raise ValueError("`color_pool` must be provided during initialization or by a subclass.")
+        if not color_pool:
+            raise ValueError("`color_pool` cannot be empty.")
         
         self.colors: List[str] = color_pool
-        self.assigned_colors: Dict[str, int] = {} # Maps object_name to index in self.colors
+        # Maps object_name to its assigned index in self.colors to ensure consistency
+        self.assigned_colors: Dict[str, int] = {}
+
 
     def get_color(self, object_name: str) -> str:
         """
@@ -74,6 +67,7 @@ class ColorAssigner:
             color_index = self.assigned_colors[object_name]
         else:
             # Calculate the next available color index, wrapping around the list
+            # `len(self.colors)` is guaranteed to be > 0 due to __init__ check.
             color_index = len(self.assigned_colors) % len(self.colors)
             self.assigned_colors[object_name] = color_index
         
@@ -87,13 +81,20 @@ class FeatureColorAssigner(ColorAssigner):
     Uses a distinct set of default colors suitable for features, which can be
     extended with user-provided colors.
     """
+
+    # Default hexadecimal color codes for features, typically strong, distinct colors.
+    _DEFAULT_FEATURE_COLORS: List[str] = [
+        '#4f77d4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+    ]
+
     def __init__(self, custom_colors: Optional[List[str]] = None) -> None:
         """
         Initializes the FeatureColorAssigner.
 
         Parameters
         ----------
-        custom_colors : list[str], optional
+        custom_colors : list of str, optional
             A list of custom hexadecimal color codes to use. These colors will
             be prioritized before the default feature colors are used.
             If None, only the default feature colors will be used.
@@ -101,8 +102,8 @@ class FeatureColorAssigner(ColorAssigner):
         if custom_colors is None:
             color_pool = self._DEFAULT_FEATURE_COLORS
         else:
-            # Combine custom colors with default colors. Use list() to create a new list
-            # from custom_colors to avoid modifying the original list passed by the user.
+            # Combine custom colors with default colors, ensuring `custom_colors` come first.
+            # `list(custom_colors)` creates a shallow copy to avoid modifying the original list.
             color_pool = list(custom_colors) + self._DEFAULT_FEATURE_COLORS
         
         super().__init__(color_pool)
@@ -115,13 +116,19 @@ class OperatorColorAssigner(ColorAssigner):
     Uses a distinct set of default colors suitable for operators, which can be
     extended with user-provided colors.
     """
+    # Default hexadecimal color codes for operators, typically pale pastels.
+    _DEFAULT_OPERATOR_COLORS: List[str] = [
+        '#f8ffef', '#f8ffff', '#fff8f8', '#fffff8',
+        '#f8f8ff', '#eff8ff',
+    ]
+
     def __init__(self, custom_colors: Optional[List[str]] = None) -> None:
         """
         Initializes the OperatorColorAssigner.
 
         Parameters
         ----------
-        custom_colors : list[str], optional
+        custom_colors : list of str, optional
             A list of custom hexadecimal color codes to use. These colors will
             be prioritized before the default operator colors are used.
             If None, only the default operator colors will be used.
@@ -129,7 +136,8 @@ class OperatorColorAssigner(ColorAssigner):
         if custom_colors is None:
             color_pool = self._DEFAULT_OPERATOR_COLORS
         else:
-            # Combine custom colors with default colors.
+            # Combine custom colors with default colors, ensuring `custom_colors` come first.
+            # `list(custom_colors)` creates a shallow copy to avoid modifying the original list.
             color_pool = list(custom_colors) + self._DEFAULT_OPERATOR_COLORS
             
         super().__init__(color_pool)

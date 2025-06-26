@@ -68,6 +68,7 @@ doc/sg_execution_times.rst
 docs/_build/
 docs/generated/
 docs/sg_execution_times.rst
+docs/make.bat
 
 # PyBuilder
 target/

@@ -1,13 +1,7 @@
 """
-@author: POM <zuffy@mahoonium.ie>
-License: BSD 3 clause
-This module contains the zuffy Classifier and supporting methods and functions.
-"""
+This module contains the Zuffy Classifier and supporting methods and functions.
 
-#if __name__ == "__main__" and __package__ is None:
-#    __package__ = "zuffy.zuffy"
-#import sys    
-#print("In module products sys.path[0], __package__ ==", sys.path[0], __package__)
+"""
 
 import numbers # for scikit learn Interval
 import numpy as np
@@ -17,7 +11,7 @@ from sklearn.metrics import euclidean_distances
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.utils._param_validation import StrOptions, Interval
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import check_is_fitted, check_X_y, check_array
 
 from gplearn.functions import _Function
 from gplearn.genetic   import SymbolicClassifier
@@ -28,8 +22,8 @@ from ._fpt_operators import *
 class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     """A Fuzzy Pattern Tree Classifier which uses genetic programming to infer the model structure.
 
-    This classifier wraps gplearn.genetic.SymbolicClassifier and handles multi-class classification
-    using sklearn.multiclass.OneVsRestClassifier or sklearn.multiclass.OneVsOneClassifier.  It uses
+    This classifier wraps ``gplearn.genetic.SymbolicClassifier`` and handles multi-class classification
+    using ``sklearn.multiclass.OneVsRestClassifier`` or ``sklearn.multiclass.OneVsOneClassifier``.  It uses
     the OneVsRestClassifier classifier to handle multi-class classifications by default.
 
     These parameters are passed through to the gplearn SymbolicClassifier and further documentation is 
@@ -71,6 +65,7 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
 
     init_method : {'half and half', 'grow', 'full'}, default='half and half'
         The method to use for initializing the population.
+
         - 'grow': Nodes are chosen at random from both functions and terminals,
           allowing for smaller trees than `init_depth` allows. Tends to grow
           asymmetrical trees.
@@ -149,16 +144,16 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
 
     Attributes
     ----------
-    classes_ : ndarray of shape (n_classes,)
+    classes\_ : ndarray of shape (n_classes,)
         The unique class labels observed in `y`.
 
-    multi_ : OneVsRestClassifier or OneVsOneClassifier
+    multi\_ : OneVsRestClassifier or OneVsOneClassifier
         The underlying scikit-learn multi-class classifier used for training.
 
-    n_features_in_ : int
+    n_features_in\_ : int
         Number of features seen during `fit`.
 
-    feature_names_in_ : ndarray of str, shape (`n_features_in_`,)
+    feature_names_in\_ : ndarray of str, shape (`n_features_in_`,)
         Names of features seen during `fit`. Defined only when `X`
         has feature names that are all strings.
 
@@ -179,9 +174,6 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     (150,)
 
     """
-
-    # This is a dictionary used to define the type and scope of parameters.
-    # It used to validate parameter within the `_fit_context` decorator.
 
     _parameter_constraints = { # POM These are only checked when we use the fit method - not checked when initialising - why?
         # The domain for the parameters is mostly defined by the gplearn classifier
@@ -208,7 +200,7 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         "stopping_criteria":    [Interval(numbers.Real, 0, None, closed="both")],
         "tournament_size":      [Interval(numbers.Integral, 1, None, closed="left")],
         "transformer":          [StrOptions({'sigmoid'}), callable],
-        "verbose":              ["verbose"],
+        "verbose":              [numbers.Integral, bool],
         "warm_start":           [bool],
     }
 
@@ -219,33 +211,33 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     )
 
     def __init__(
-                self,
-                class_weight          = None,
-                const_range           = None,
-                feature_names         = None,
-                function_set          = default_function_set,
-                generations           = 20,
-                init_depth            = (2, 10),
-                init_method           = 'half and half',
-                low_memory            = False,
-                max_samples           = 1.0,
-                metric                = 'log loss',
-                multiclassifier       = 'OneVsRestClassifier',
-                n_jobs                = 1,
-                p_crossover           = 0.9,
-                p_hoist_mutation      = 0.01,
-                p_point_mutation      = 0.01,
-                p_point_replace       = 0.05,
-                p_subtree_mutation    = 0.01,
-                parsimony_coefficient = 0.001,
-                population_size       = 1000,
-                random_state          = None,
-                stopping_criteria     = 0.0,
-                tournament_size       = 20,
-                transformer           = 'sigmoid',
-                verbose               = 0,
-                warm_start            = False,
-                ):
+        self,
+        class_weight=None,
+        const_range=None,
+        feature_names=None,
+        function_set=default_function_set,
+        generations=20,
+        init_depth=(2, 10),
+        init_method='half and half',
+        low_memory=False,
+        max_samples=1.0,
+        metric='log loss',
+        multiclassifier='OneVsRestClassifier',
+        n_jobs=1,
+        p_crossover=0.9,
+        p_hoist_mutation=0.01,
+        p_point_mutation=0.01,
+        p_point_replace=0.05,
+        p_subtree_mutation=0.01,
+        parsimony_coefficient=0.001,
+        population_size=1000,
+        random_state=None,
+        stopping_criteria=0.0,
+        tournament_size=20,
+        transformer='sigmoid',
+        verbose=0,
+        warm_start=False,
+        ):
         """Initialize ZuffyClassifier.
 
         All parameters are passed directly to the underlying `gplearn.genetic.SymbolicClassifier`
@@ -254,31 +246,31 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         """
 
   
-        self.class_weight           = class_weight
-        self.const_range            = const_range
-        self.feature_names          = feature_names
-        self.function_set           = function_set
-        self.generations            = generations
-        self.init_depth             = init_depth
-        self.init_method            = init_method
-        self.low_memory             = low_memory
-        self.max_samples            = max_samples
-        self.metric                 = metric
-        self.multiclassifier        = multiclassifier
-        self.n_jobs                 = n_jobs
-        self.p_crossover            = p_crossover
-        self.p_hoist_mutation       = p_hoist_mutation
-        self.p_point_mutation       = p_point_mutation
-        self.p_point_replace        = p_point_replace
-        self.p_subtree_mutation     = p_subtree_mutation
-        self.parsimony_coefficient  = parsimony_coefficient
-        self.population_size        = population_size
-        self.random_state           = random_state
-        self.stopping_criteria      = stopping_criteria
-        self.tournament_size        = tournament_size
-        self.transformer            = transformer
-        self.verbose                = verbose
-        self.warm_start             = warm_start
+        self.class_weight = class_weight
+        self.const_range = const_range
+        self.feature_names = feature_names
+        self.function_set = function_set
+        self.generations = generations
+        self.init_depth = init_depth
+        self.init_method = init_method
+        self.low_memory = low_memory
+        self.max_samples = max_samples
+        self.metric = metric
+        self.multiclassifier = multiclassifier
+        self.n_jobs = n_jobs
+        self.p_crossover = p_crossover
+        self.p_hoist_mutation = p_hoist_mutation
+        self.p_point_mutation = p_point_mutation
+        self.p_point_replace = p_point_replace
+        self.p_subtree_mutation = p_subtree_mutation
+        self.parsimony_coefficient = parsimony_coefficient
+        self.population_size = population_size
+        self.random_state = random_state
+        self.stopping_criteria = stopping_criteria
+        self.tournament_size = tournament_size
+        self.transformer = transformer
+        self.verbose = verbose
+        self.warm_start = warm_start
 
     @_fit_context(prefer_skip_nested_validation=True)
     def fit(self, X, y):
@@ -311,42 +303,44 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
             X, y = validate_data(X, y)
             #pass
         
-
+        #.X, y = self._validate_data(X, y)
+        
         # We need to make sure that we have a classification task
         check_classification_targets(y)
 
         # classifier should always store the classes seen during `fit`
         self.classes_ = np.unique(y)
 
-        # Store the training data to predict with euclidian later
+        # Store the fuzzified training data for use later (perhaps by feature importance evaluation)
         self.X_ = X
         self.y_ = y
 
         base_params = {
-            'class_weight':				self.class_weight,
-            'const_range':				self.const_range,
-            'feature_names':            self.feature_names,
-            'function_set':				self.function_set,
-            'generations':				self.generations,
-            'init_depth':				self.init_depth,
-            'init_method':				self.init_method,
-            'low_memory':			    self.low_memory,
-            'max_samples':			    self.max_samples,
-            'metric':			        self.metric,
-            'n_jobs':			        self.n_jobs,
-            'p_crossover':			    self.p_crossover,
-            'p_hoist_mutation':			self.p_hoist_mutation,
-            'p_point_mutation':			self.p_point_mutation,
-            'p_point_replace':			self.p_point_replace,
-            'p_subtree_mutation':       self.p_subtree_mutation,
-            'parsimony_coefficient':    self.parsimony_coefficient,
-            'population_size':			self.population_size,
-            'random_state':			    self.random_state,
-            'stopping_criteria':		self.stopping_criteria,
-            'tournament_size':			self.tournament_size,
-            'transformer':			    self.transformer,
-            'verbose':			        0 if self.multiclassifier == 'OneVsOneClassifier' else self.verbose, # OneVsOneClassifier doesn't take verbose,
-            'warm_start':			    self.warm_start
+            'class_weight': self.class_weight,
+            'const_range': self.const_range,
+            'feature_names': self.feature_names,
+            'function_set': self.function_set,
+            'generations': self.generations,
+            'init_depth': self.init_depth,
+            'init_method': self.init_method,
+            'low_memory': self.low_memory,
+            'max_samples': self.max_samples,
+            'metric': self.metric,
+            'n_jobs': self.n_jobs, # This n_jobs is for SymbolicClassifier
+            'p_crossover': self.p_crossover,
+            'p_hoist_mutation': self.p_hoist_mutation,
+            'p_point_mutation': self.p_point_mutation,
+            'p_point_replace': self.p_point_replace,
+            'p_subtree_mutation': self.p_subtree_mutation,
+            'parsimony_coefficient': self.parsimony_coefficient,
+            'population_size': self.population_size,
+            'random_state': self.random_state,
+            'stopping_criteria': self.stopping_criteria,
+            'tournament_size': self.tournament_size,
+            'transformer': self.transformer,
+            'verbose': 0 if self.multiclassifier == 'OneVsOneClassifier' else self.verbose,
+            'warm_start': self.warm_start,
+            'n_jobs': 1 #self.n_jobs, 
             }
 
         if self.multiclassifier=='OneVsOneClassifier':
@@ -384,35 +378,26 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         # Check if fit had been called
         check_is_fitted(self)
 
-        # Input validation
-        # We need to set reset=False because we don't want to overwrite n_features_in_
-        # but only check that the shape is consistent.
-        X = self._validate_data(X, reset=False)
+        # Input validation for X. Use check_array for prediction inputs.
+        #X = check_array(X)
+        X = self._validate_data(X, reset=False) # `reset=False` to preserve `n_features_in_` etc.
 
-        closest = np.argmin(euclidean_distances(X, self.X_), axis=1)
-        ret1 = self.y_[closest]
-        #return self.y_[closest]
-    
-        # Delegate prediction to the underlying multi-class classifier
-        ret2 = self.multi_.predict(X)
-        print('zuffy closest:     ', ret1)
-        print('zuffy mulitpredict:', ret2)
-        if (ret1==ret2).all():
-            pass
-        else:
-            print("These are different! Why? Difference Count: ",len(ret1)-np.sum(ret1==ret2),'/',len(ret1))
-            # A class is different than closest
-        #return ret2
-    
+        # Ensure the number of features matches what was seen during fit
+        #if X.shape[1] != self.n_features_in_:
+        #    raise ValueError(
+        #        f"X has {X.shape[1]} features, but this ZuffyClassifier was "
+        #        f"fitted with {self.n_features_in_} features."
+        #    )        
+
         # For debugging purposes - compare with nearest neighbor approach
-        if hasattr(self, 'verbose') and self.verbose > 0:
-            closest = np.argmin(euclidean_distances(X, self.X_), axis=1)
-            ret1 = self.y_[closest]
-            ret2 = self.multi_.predict(X)
-            
-            if not (ret1 == ret2).all():
-                diff_count = len(ret1) - np.sum(ret1 == ret2)
-                print(f"Warning: {diff_count} predictions differ from nearest neighbour approach")
+        #if hasattr(self, 'verbose') and self.verbose > 0:
+        #    closest = np.argmin(euclidean_distances(X, self.X_), axis=1)
+        #    ret1 = self.y_[closest]
+        #    ret2 = self.multi_.predict(X)
+        #    
+        #    if not (ret1 == ret2).all():
+        #        diff_count = len(ret1) - np.sum(ret1 == ret2)
+        #        print(f"Warning: {diff_count} predictions differ from nearest neighbour approach")
         
         return self.multi_.predict(X)
     
@@ -431,6 +416,13 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         """
         check_is_fitted(self)
         X = self._validate_data(X, reset=False)
+
+        # Ensure the number of features matches what was seen during fit
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but this ZuffyClassifier was "
+                f"fitted with {self.n_features_in_} features."
+            )
         
         # Delegate probability prediction to the underlying multi-class classifier
         # This will work if the underlying SymbolicClassifier supports predict_proba
