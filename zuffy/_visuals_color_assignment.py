@@ -9,6 +9,7 @@ assigned sequentially from a predefined or custom pool.
 
 from typing import List, Dict, Optional
 
+
 class ColorAssigner:
     """
     A base class for assigning cyclical colors to named objects (e.g., features, operators).

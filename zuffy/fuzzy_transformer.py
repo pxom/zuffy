@@ -3,12 +3,14 @@ This module provides functions for Fuzzy Pattern Tree operations and a
 scikit-learn compatible `FuzzyTransformer`.
 """
 
+import numbers
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin, _fit_context
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.validation import check_is_fitted
-from typing import List, Union, Sequence, Optional, Any, Dict, Tuple
 
 def trimf(feature: np.ndarray, abc: Sequence[float]) -> np.ndarray:
     """
@@ -66,7 +68,7 @@ def trimf(feature: np.ndarray, abc: Sequence[float]) -> np.ndarray:
 
     return y
 
-def convert_to_numeric(df: pd.DataFrame, target: str) -> Tuple[np.ndarray, pd.DataFrame]:
+def convert_to_numeric(df: pd.DataFrame, target: str) ->Tuple[List[str], pd.DataFrame]:
     """
     Converts values in a specified target column of a DataFrame into integers
     using `LabelEncoder`.
@@ -131,6 +133,11 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         Pandas DataFrame, its column names will be used and this parameter
         will be ignored.
 
+    show_fuzzy_range : bool, default=True
+        If `True`, the names of the output fuzzy features will include the
+        numerical range (e.g., 'low feature_name (0.00 to 5.00)').
+        If `False`, only the tag and feature name will be used (e.g., 'low feature_name').
+
     verbose : bool, default=False
         If `True`, the transformer will print progress and debugging
         information during `fit` and `transform` operations.
@@ -183,23 +190,25 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         "oob_check": [bool],
         "tags": [list],
         "feature_names": [list, None],
+        "show_fuzzy_range": [bool],
         "verbose": [bool],
     }
 
-    #@_fit_context(prefer_skip_nested_validation=True) # pom: this caused a problem with testing
     def __init__(
         self,
         non_fuzzy: Optional[List[str]] = None,
         oob_check: bool = False,
         tags: List[str] = ['low', 'med', 'high'],
         feature_names: Optional[List[str]] = None,
+        show_fuzzy_range: bool = True,
         verbose: bool = False,
     ):
         self.non_fuzzy = non_fuzzy if non_fuzzy is not None else []
         self.oob_check = oob_check
         self.tags = tags
-        self.verbose = verbose
         self.feature_names = feature_names
+        self.show_fuzzy_range = show_fuzzy_range
+        self.verbose = verbose
 
         # Validate tags length and type early for robustness.
         if not isinstance(self.tags, (list, tuple)) or len(self.tags) != 3 or \
@@ -207,7 +216,6 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
             raise ValueError("`tags` must be a list or tuple of three strings.")
         
 
-    #@_fit_context(prefer_skip_nested_validation=True) # pom: this caused a problem with testing
     def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Optional[np.ndarray] = None) \
             -> "FuzzyTransformer":
         """Fits the FuzzyTransformer by determining fuzzy bounds for numerical features
@@ -238,26 +246,28 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
             If a column designated for fuzzification contains non-numeric data.
         """
         if not isinstance(X, pd.DataFrame) and self.feature_names is None:
-            raise ValueError("You must specify `feature_names` in the init if you use numpy arrays in the fit")
+            raise ValueError(
+                "You must specify `feature_names` in the `__init__` method "
+                "if you use NumPy arrays in the `fit` method."
+            )
 
+        # Determine column count based on input type
         if isinstance(X, pd.DataFrame):
             col_cnt = X.shape[1]
         else:
-            col_cnt = len(X[0])
+            if X.ndim == 1:  # Handle 1D array case if it means single feature
+                col_cnt = 1
+            else:
+                col_cnt = X.shape[1]
 
-
+        # Validate feature_names length against column count
         if self.feature_names is not None and len(self.feature_names) != col_cnt:
             raise ValueError(f"The number of feature_names supplied ({len(self.feature_names)}) does " \
                              f"not match the number of columns in X ({len(X[0])})")
 
-        # We need to keep X unmodified but validation fails if a column is non-numeric so we numerify the non_fuzzy columns for validate_data
-        temp_X = X.copy()
-        #if isinstance(X, pd.DataFrame):
-        #    temp_X[self.non_fuzzy] = 0  # set fuzzy cols to zero so that they are retained when subsequently validated for transforming
-
         # Validate X and set n_features_in_ and feature_names_in_
-        dummy = self._validate_data(
-            temp_X, # pom omit non-fuzzy from validation
+        _ = self._validate_data(
+            X.copy(),
             accept_sparse=False,
             force_all_finite='allow-nan',
             reset=True,
@@ -312,11 +322,19 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                 self.fuzzy_bounds_[col] = (a, b, c)
 
                 # Add names for the three fuzzy features (low, med, high)
-                self.feature_names_out_.extend([
-                    f"{self.tags[0]} {col}| ({a:.2f} to {b:.2f})",
-                    f"{self.tags[1]} {col}| ({a:.2f} to {b:.2f} to {c:.2f})",
-                    f"{self.tags[2]} {col}| ({b:.2f} to {c:.2f})"
-                ])
+                if self.show_fuzzy_range:
+                    self.feature_names_out_.extend([
+                        f"{self.tags[0]} {col}| ({a:.2f} to {b:.2f})",
+                        f"{self.tags[1]} {col}| ({a:.2f} to {b:.2f} to {c:.2f})",
+                        f"{self.tags[2]} {col}| ({b:.2f} to {c:.2f})"
+                    ])
+                else:
+                    self.feature_names_out_.extend([
+                        f"{self.tags[0]} {col}",
+                        f"{self.tags[1]} {col}",
+                        f"{self.tags[2]} {col}"
+                    ])
+
                 if self.verbose:
                     print(f"Fitted fuzzy bounds for '{col}': a={a:.2f}, b={b:.2f}, c={c:.2f}")
 
@@ -352,12 +370,14 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
         temp_X = X.copy()
         if isinstance(X, pd.DataFrame):
-            temp_X[self.non_fuzzy] = 0  # set fuzzy cols to zero so that they are retained when subsequently validated for transforming
+            # set fuzzy cols to zero so that they are retained when subsequently validated 
+            # for transforming
+            temp_X[self.non_fuzzy] = 0  
 
         # Validate X and set n_features_in_ and feature_names_in_
         # Validate input `X` for transformation. `reset=False` ensures that
         # `n_features_in_` is checked against the fitted value.
-        dummy = self._validate_data(
+        _ = self._validate_data(
             temp_X,
             reset=False,
             accept_sparse=False,
@@ -390,7 +410,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
                 # Ensure all categories seen during fit are present in the output,
                 # adding zero columns for any missing categories (e.g., unseen in test set).
-                expected_cols = [f"{col}= {cat}" for cat in self.categorical_values_[col]]
+                expected_cols = [f"{col}={cat}" for cat in self.categorical_values_[col]]
                 for expected_col in expected_cols:
                     if expected_col in one_hot.columns:
                         transformed_features.append(one_hot[expected_col].values.reshape(-1, 1))

@@ -1,12 +1,47 @@
 """
-This module contains a set of fuzzy logic operators designed for use with gplearn,
+This module contains a set of fuzzy logic operators designed for use with Zuffy,
 suitable for constructing Fuzzy Pattern Trees (FPT). Each operator performs
 a specific mathematical operation on NumPy arrays, representing fuzzy set memberships.
+
+The functions can be organised thus:
+1. Basic Fuzzy Operators
+    * _minimum (MINIMUM/and)
+    * _maximum (MAXIMUM/or)
+    * _complement (COMPLEMENT/not)
+
+2. Linguistic Hedges
+    * _diluter (DILUTER)
+    * _diluter_power (used by DILUTER3, DILUTER4)
+    * _concentrator (CONCENTRATOR)
+    * _concentrator_power (used by CONCENTRATOR3, CONCENTRATOR4)
+    * _intensifier (INTENSIFIER)
+    * _diffuser (DIFFUSER)
+
+3. Averaging Operators
+    * _weighted_average (used by WA_P1 to WA_P9)
+    * _ordered_weighted_average (used by OWA_P1 to OWA_P9)
+
+4. T-Norms and T-Conorms
+    * _fuzzy_and (FUZZY_AND - specifically product t-norm)
+    * _fuzzy_or (FUZZY_OR - specifically probabilistic sum t-conorm)
+    * _lukasiewicz_t_norm (LUKASIEWICZ/AND)
+    * _lukasiewicz_t_conorm (LUKASIEWICZ/OR)
+    * _hamacher_t_norm (used by HAMACHER025, HAMACHER050)
+    * _product_t_norm (PRODUCT)
+
+5. Conditional Operators
+    * _if_gte (IFGTE)
+    * _if_gte_else (IFGTE2)
+    * _if_lt (IFLT)
+    * _if_lt_else (IFLT2)
+
 """
+
+
+from typing import Union
 
 import numpy as np
 from gplearn import functions
-from typing import Union
 
 # Define type alias for clarity
 ArrayLike = Union[np.ndarray, float]
@@ -371,6 +406,24 @@ def _lukasiewicz_t_norm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
     return np.maximum(0, x0 + x1 - 1)
 
+def _lukasiewicz_t_conorm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
+    """
+    Calculates the Łukasiewicz t-conorm: min(1, x0 + x1).
+
+    Parameters
+    ----------
+    x0 : np.ndarray or float
+        First value, typically in the range [0, 1].
+    x1 : np.ndarray or float
+        Second value, typically in the range [0, 1].
+
+    Returns
+    -------
+    np.ndarray or float
+        The Łukasiewicz t-conorm of x0 and x1.
+    """
+    return np.minimum(1, x0 + x1)
+
 def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> ArrayLike:
     """
     Computes the Hamacher T-norm.
@@ -403,9 +456,6 @@ def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> Array
     # For general fuzzy set operations, often the domain [0,1] is assumed
     # by design, so explicit checks might be omitted for performance.
 
-    # pom do not raise error because make_function will trigger this. Rely on clip.
-    #if not (np.all((x0 >= 0) & (x0 <= 1)) and np.all((x1 >= 0) & (x1 <= 1))):
-    #    raise ValueError("Inputs x0 and x1 must be in the range [0, 1].")
     if lambda_param < 0:
         raise ValueError("Parameter lambda_param must be non-negative.")
 
@@ -508,8 +558,12 @@ IFLT2 = functions.make_function(function=_if_lt_else,
                                 name='IFLT2',
                                 arity=4)
 
-LUKASIEWICZ = functions.make_function(function=_lukasiewicz_t_norm,
-                                      name='LUKASIEWICZ',
+LUKASIEWICZ_AND = functions.make_function(function=_lukasiewicz_t_norm,
+                                      name='LUKASIEWICZ/AND',
+                                      arity=2)
+
+LUKASIEWICZ_OR = functions.make_function(function=_lukasiewicz_t_conorm,
+                                      name='LUKASIEWICZ/OR',
                                       arity=2)
 
 HAMACHER025 = functions.make_function(function=lambda x0, x1: _hamacher_t_norm(x0, x1, 0.25),

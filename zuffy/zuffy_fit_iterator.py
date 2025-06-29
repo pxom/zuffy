@@ -7,14 +7,15 @@ Pattern Trees to find an optimal model.
 
 import numbers # for scikit learn Interval
 import time
+from typing import Any, Dict, List, Tuple, Union
+
 import numpy as np
 import pandas as pd
-from typing import Union, List, Dict, Tuple, Any
-
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.utils._param_validation import Interval, validate_params
+
 from zuffy.fuzzy_transformer import FuzzyTransformer
 
 
@@ -37,6 +38,12 @@ class ZuffyFitIterator(BaseEstimator):
         A list of string tags to use for fuzzification, representing the names
         of the fuzzy sets (e.g., low, medium, high). These are passed directly
         to the `FuzzyTransformer`.
+
+    show_fuzzy_range : bool, default=True
+        If `True`, the names of the output fuzzy features will include the
+        numerical range (e.g., 'low feature_name (0.00 to 5.00)').
+        If `False`, only the tag and feature name will be used (e.g., 'low feature_name').
+        This parameter is passed directly to the `FuzzyTransformer`.
 
     n_iter : int, default=5
         The number of random splits and evaluations to perform. A higher value
@@ -95,6 +102,7 @@ class ZuffyFitIterator(BaseEstimator):
     # Using _parameter_constraints as per scikit-learn convention for validation
     _parameter_constraints: dict = {
         "tags": [list],
+        "show_fuzzy_range": [bool],
         "n_iter": [Interval(numbers.Integral, 1, None, closed="left")],
         "test_size": [Interval(numbers.Real, 0, 1, closed="both")],
         "random_state": ["random_state"],
@@ -104,25 +112,25 @@ class ZuffyFitIterator(BaseEstimator):
         _parameter_constraints,
         prefer_skip_nested_validation=True,
     )
-    def __init__(self, model, tags: List[str] = ['lo', 'med', 'hi'], n_iter: int = 5,
-                 test_size: float = 0.2, random_state: Union[int, None] = None):
+    def __init__(
+        self,
+        model: Any,
+        tags: List[str] = ['lo', 'med', 'hi'],
+        show_fuzzy_range: bool = True,
+        n_iter: int = 5,
+        test_size: float = 0.2,
+        random_state: Union[int, None] = None
+        ):
 
         self.model = model
         if hasattr(self.model, "_validate_params"):
             self.model._validate_params()
 
         self.tags = tags
+        self.show_fuzzy_range = show_fuzzy_range
         self.n_iter = n_iter
         self.test_size = test_size
         self.random_state = random_state
-
-        # Initialize attributes that will be populated after fitting
-        #self.best_estimator_ = None
-        #self.best_score_ = -np.inf
-        #self.iteration_performance_ = []
-        #self.best_iteration_index_ = -1
-        #self.smallest_tree_size_ = np.inf
-        #self.fuzzy_feature_names_ = None
 
     @validate_params( 
         {
@@ -131,7 +139,12 @@ class ZuffyFitIterator(BaseEstimator):
         }, 
         prefer_skip_nested_validation=True
     )
-    def fit(self, X: np.ndarray, y: np.ndarray, feature_names=None, non_fuzzy=None) -> "ZuffyFitIterator":
+    def fit(self, 
+            X: Union[np.ndarray, pd.DataFrame], 
+            y: np.ndarray,
+            feature_names: Union[List[str], None] = None,
+            non_fuzzy: Union[List[str], None] = None
+            ) -> "ZuffyFitIterator":
         """
         Fits the ZuffyFitIterator by running multiple training iterations.
 
@@ -146,18 +159,30 @@ class ZuffyFitIterator(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features) or pd.DataFrame
             The input features (unfuzzified) to be used for training and testing.
 
         y : array-like of shape (n_samples,)
             The target labels corresponding to `X`.
 
+        feature_names : list of str, optional
+            A list of strings representing the names of the features in `X`.
+            If `X` is a Pandas DataFrame and `feature_names` is None,
+            `X.columns` will be used. If `X` is a NumPy array and `feature_names`
+            is None, generic names (e.g., 'X0', 'X1') will be generated.
+
+        non_fuzzy : list of str, optional
+            A list of feature names that should NOT be fuzzified. These columns
+            will be passed through directly to the model after one-hot encoding
+            by the `FuzzyTransformer`.
+
         Returns
         -------
         self : ZuffyFitIterator
             The fitted instance of the ZuffyFitIterator.
-
         """
+        # Set self.non_fuzzy early for use in _validate_data and FuzzyTransformer.
+        self.non_fuzzy = non_fuzzy if non_fuzzy is not None else []
 
         # Preserve feature names if we get a DataFrame rather than a Numpy array
         if isinstance(X, pd.DataFrame) and feature_names is None:
@@ -167,10 +192,9 @@ class ZuffyFitIterator(BaseEstimator):
             # generate feature_names
             feature_names = [f'X{i}' for i in range(X.shape[1])]
 
-        #X, y = self._validate_data(X, y, accept_sparse=False, force_all_finite='allow-nan')
         num_X = X.drop(non_fuzzy,axis=1)
         if num_X.shape[1] > 0:
-            temp_X, y = self._validate_data(num_X, y, accept_sparse=False, force_all_finite='allow-nan')
+            _, y = self._validate_data(num_X, y, accept_sparse=False, force_all_finite='allow-nan')
         else:
             print("Warning: There are no numeric columns in this dataset")
         self.feature_names_in_ = feature_names
@@ -179,7 +203,7 @@ class ZuffyFitIterator(BaseEstimator):
         best_score_overall = -np.inf
         best_iter_idx = -1
         smallest_tree_size_overall = np.inf
-        iteration_performance_list = []
+        iteration_performance_list: List[Tuple[float, int, Dict[Any, float]]] = []
         sum_scores = 0.0
 
         for i in range(self.n_iter):
@@ -204,6 +228,7 @@ class ZuffyFitIterator(BaseEstimator):
                 # Ensure the best_estimator_ exists if GridSearchCV didn't find a valid model
                 if not hasattr(current_estimator, 'best_estimator_'):
                     self._verbose_out(f"Warning: GridSearchCV in iteration {i} did not find a best estimator.")
+                    zuffy_estimator = None
                 else:
                     zuffy_estimator = current_estimator.best_estimator_
             else:
@@ -215,9 +240,9 @@ class ZuffyFitIterator(BaseEstimator):
                 for e in zuffy_estimator.multi_.estimators_:
                     if hasattr(e, '_program'):
                         tree_size += len(e._program.program)
-            self._verbose_out(f"Tree size for iteration {i}: {tree_size}")
+            self._verbose_out(f"Tree size at iteration {i}: {tree_size}")
 
-            iteration_performance_list.append([score, tree_size, class_scores])
+            iteration_performance_list.append((score, tree_size, class_scores))
 
             # Update the best estimator based on score (primary) and then tree size (tie-breaker).
             if (score > best_score_overall) or \
@@ -227,22 +252,29 @@ class ZuffyFitIterator(BaseEstimator):
                 self.fuzz_transformer_ = fuzz_transformer
                 best_score_overall = score
                 smallest_tree_size_overall = tree_size
-                self._verbose_out(f"\aNew best estimator found: Iteration {i} with score {score:.5f} and tree size {tree_size}")
+                self._verbose_out(f"New best estimator found: Iteration {i} with score {score:.5f} and tree size {tree_size}")
 
             iter_duration = round(time.time() - iter_start_time, 1)
             avg_score_so_far = sum_scores / (i + 1)
-            self._verbose_out(f"Iteration #{i} took {iter_duration}s | Best so far: {best_score_overall:.5f} (size: {smallest_tree_size_overall}) | Average score: {avg_score_so_far:.5f}")
+            self._verbose_out(f"Iteration #{i} took {iter_duration}s | "
+                              f"Best accuracy so far: {best_score_overall:.5f} (size: {smallest_tree_size_overall}) | "
+                              f"Average score: {avg_score_so_far:.5f}")
 
-        self._verbose_out(f"Finished iterating. Best iteration index: {best_iter_idx}")
+        self._verbose_out(f"Finished iterating. Best iteration: {best_iter_idx}")
         self.best_score_ = best_score_overall
         self.iteration_performance_ = iteration_performance_list
         self.best_iteration_index_ = best_iter_idx
         self.smallest_tree_size_ = smallest_tree_size_overall
         return self
 
-    def _perform_single_fit_job(self, model: Any, X: np.ndarray, y: np.ndarray,
-                                test_size: float = 0.2, random_state: Union[int, None] = None) \
-                                -> Tuple[float, Any, Dict[Any, float], List[str]]:
+    def _perform_single_fit_job(
+            self,
+            model: Any,
+            X: Union[np.ndarray, pd.DataFrame], # Input can be DataFrame or NumPy array
+            y: np.ndarray,
+            test_size: float = 0.2,
+            random_state: Union[int, None] = None
+            ) -> Tuple[float, Any, Dict[Any, float], FuzzyTransformer]:
         """
         Performs a single iteration of data splitting, fuzzification, model training,
         and evaluation.
@@ -280,28 +312,35 @@ class ZuffyFitIterator(BaseEstimator):
             A dictionary where keys are class labels and values are their
             corresponding accuracy scores on the test set for this iteration.
 
-        fuzzy_feature_names : list of str
-            A list of feature names generated by the `FuzzyTransformer` for
-            this specific iteration.
+        fuzz_transformer : FuzzyTransformer
+            The fitted `FuzzyTransformer` used in this specific iteration.
         """
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, shuffle=True, stratify=y, random_state=random_state
         )
         
-        fuzz_transformer = FuzzyTransformer(feature_names=self.feature_names_in_, non_fuzzy=self.non_fuzzy, tags=self.tags)
+        fuzz_transformer = FuzzyTransformer(
+            feature_names=self.feature_names_in_,
+            non_fuzzy=self.non_fuzzy,
+            tags=self.tags,
+            show_fuzzy_range=self.show_fuzzy_range
+            )
         fuzz_transformer.fit(X_train)
         fuzzy_X_train = fuzz_transformer.transform(X_train)
         self.fuzzy_feature_names_ = fuzz_transformer.feature_names_out_
 
-        fitted_model = model.fit(fuzzy_X_train, y_train) ### ??? n jobs here?
+        # Fit the model (ZuffyClassifier or GridSearchCV) on the fuzzified training data
+        fitted_model = model.fit(fuzzy_X_train, y_train)
+        # Transform the test data using the fitted transformer
         fuzzy_X_test = fuzz_transformer.transform(X_test)
+        # Evaluate the model on the fuzzified test data
         score = fitted_model.score(fuzzy_X_test, y_test)
         self._verbose_out(f"Overall test score: {score:.8f}")
 
+        # Get predictions to calculate per-class accuracies
         predictions = fitted_model.predict(fuzzy_X_test)
         class_scores = {}
-        # Calculate individual class accuracies.
-        for cls in np.unique(fitted_model.classes_):
+        for cls in np.unique(y_test):
             idx = (y_test == cls)
             if np.any(idx):  # Ensure there are samples for the current class in the test split
                 class_accuracy = accuracy_score(y_test[idx], predictions[idx])
@@ -310,12 +349,12 @@ class ZuffyFitIterator(BaseEstimator):
             else:
                 self._verbose_out(f"Class {cls} not present in this test split.")
 
-        avg_score = round(np.mean(list(class_scores.values())), 5)
-        self._verbose_out(f"Average Class score: {avg_score} [DIFF={(score-avg_score):.5f}]")
+        avg_score = round(np.mean(list(class_scores.values())), 5) if class_scores else 0.0
+        self._verbose_out(f"Average Class score: {avg_score}")
 
         return score, fitted_model, class_scores, fuzz_transformer
     
-    def get_best_class_accuracy(self):
+    def get_best_class_accuracy(self) -> Union[str, int, None]:
         """
         Returns the class label with the highest accuracy in the best iteration.
 
@@ -325,11 +364,12 @@ class ZuffyFitIterator(BaseEstimator):
             Class label with the highest accuracy in the best iteration.
             Returns None if no class scores are available.
         """
-        if self.best_iteration_index_ == -1 or not self.iteration_performance_:
+        if self.best_iteration_index_ == -1 or not hasattr(self, 'iteration_performance_') or \
+           not self.iteration_performance_:
             self._verbose_out("No iterations performed or best iteration not found.")
             return None
 
-        # self.iteration_performance_ stores [score, tree_size, class_scores_dict]
+        # self.iteration_performance_ stores (score, tree_size, class_scores_dict)
         class_scores = self.iteration_performance_[self.best_iteration_index_][2]
         if not class_scores:
             self._verbose_out("No class scores available for the best iteration.")
@@ -346,7 +386,10 @@ class ZuffyFitIterator(BaseEstimator):
 
     def _verbose_out(self, *msg: str) -> None:
         """
-        Print messages if the model is in verbose mode.
+        Prints messages if the model's 'verbose' attribute is True.
+
+        This method checks the 'verbose' attribute on the *contained* model
+        (e.g., ZuffyClassifier or GridSearchCV) to control output.
         """
         # Access the verbose attribute from the actual model, not ZuffyFitIterator itself
         if hasattr(self.model, "verbose") and self.model.verbose:

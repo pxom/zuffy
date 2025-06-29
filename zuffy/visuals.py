@@ -3,28 +3,26 @@ Functions for visualizing Fuzzy Pattern Trees (FPTs) and related models.
 
 This module provides utilities to:
 - Generate Graphviz DOT scripts for FPT models.
-- Plot the evolutionary metrics of genetic programming sub-estimators.
+- Plot the evolutionary metrics of the GP sub-estimators.
 - Calculate and display permutation feature importances.
-- Train and visualise a Decision Tree Classifier for comparison.
+- Plot the performance of the experiments (iterations)
 
 """
 
 import html
 import numbers
-import random
 import time
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from sklearn.inspection import permutation_importance
+from sklearn.utils._param_validation import HasMethods, Interval, validate_params
 
 from gplearn.functions import _Function
-
-from sklearn import tree
-from sklearn.inspection import permutation_importance
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-from sklearn.utils._param_validation import HasMethods, Interval, Options, StrOptions, validate_params
 
 from zuffy._visuals_color_assignment import FeatureColorAssigner, OperatorColorAssigner
 
@@ -188,7 +186,6 @@ def sanitise_names(names: Optional[List[Any]]) -> Optional[List[str]]:
         sanitised_list.append(html.escape(str(name)))
     return sanitised_list
 
-
 @validate_params(
     {
         #"program": [HasMethods(["_program", "n_features"])], # More specific methods check
@@ -200,7 +197,7 @@ def sanitise_names(names: Optional[List[Any]]) -> Optional[List[str]]:
     },
     prefer_skip_nested_validation=True
 )
-def export_graphviz(program, feature_names: Optional[List[str]] = None, start: int = 0,
+def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: int = 0,
                     operator_col_fn: Optional[OperatorColorAssigner] = None,
                     feature_col_fn: Optional[FeatureColorAssigner] = None,
                     imp_feat: Optional[Dict[str, List[Union[float, int]]]] = None) -> str:
@@ -304,7 +301,6 @@ def export_graphviz(program, feature_names: Optional[List[str]] = None, start: i
     # This part should ideally be unreachable if the program structure is a valid tree.
     # It might indicate an incomplete tree or an issue in the traversal logic.
     return dot_output
-
 
 @validate_params(
     {
@@ -486,7 +482,7 @@ def graphviz_tree(
             )
 
         # Generate DOT for each sub-estimator. Pass color assigners for consistency.
-        dot_script_parts.append(export_graphviz(
+        dot_script_parts.append(graph_tree_class(
             estimator._program,
             start=idx * NODE_ID_OFFSET, # Offset node IDs for this sub-tree.
             feature_names=feature_names,
@@ -650,7 +646,6 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
         plt.show()
     plt.close(fig) # Close the figure to free memory.
 
-
 @validate_params(
     {
         "reg": [HasMethods("fit")],
@@ -667,7 +662,7 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, fe
                             n_jobs: Optional[int] = None, n_repeats: int = 20, output_filename: Optional[str] = None) \
                             -> Dict[str, List[Union[float, int]]]:
     """
-    Calculates and displays permutation feature importances for a given regressor model.
+    Calculates and displays permutation feature importances for a given model.
 
     This function computes feature importances using the permutation importance method
     from `sklearn.inspection` and then plots a bar chart of these importances.
@@ -778,71 +773,89 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, fe
 
 @validate_params(
     {
-        "X": ["array-like"],
-        "y": ["array-like"],
-        "features": [None, list],
-        "out_filename": [str],
-        "max_leaf_nodes": [Interval(numbers.Integral, 1, None, closed='left'), None],
-        "random_state": [numbers.Integral, None]
+        "iter_perf": ["array-like"],
+        "best_iter": [None, int],
+        "title": [None, str],
+        "output_filename": [None, str],
+        "col_iter_acc": [None, str],
+        "col_best_iter": [None, str],
+        "col_tree_size": [None, str],
     },
     prefer_skip_nested_validation=True
 )
-def do_model_dt(X: np.ndarray, y: np.ndarray, features: Optional[List[str]], out_filename: str,
-                max_leaf_nodes: Optional[int] = 10, random_state: Optional[int] = 221) -> DecisionTreeRegressor:
+def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] = None, 
+                title: Optional[str] = "Iteration Performance", output_filename: Optional[str] = None,
+                col_iter_acc: Optional[str] = "#1c9fea", col_best_iter: Optional[str] = "#386938", 
+                col_tree_size: Optional[str] = "#755801") -> None:
     """
-    Trains a Decision Tree Regressor model and exports its visualization.
-
-    This function builds a `DecisionTreeRegressor` using the provided data and
-    hyperparameters. It then generates and saves a visualization of the
-    trained tree using `sklearn.tree.plot_tree` and prints a text-based
-    representation. This can be used for comparison with Fuzzy Pattern Trees.
-
-    Parameters
-    ----------
-    X : numpy.ndarray
-        The input features data, used for training the decision tree.
-    y : numpy.ndarray
-        The target variable data, used for training the decision tree.
-    features : list of str, optional
-        A list of string names for the features. If `None`, default feature
-        names will be used by `plot_tree` (e.g., 'X[0]', 'X[1]').
-        Defaults to `None`.
-    out_filename : str
-        The full path and filename (e.g., 'path/to/dt_plot.png') to save the
-        decision tree plot.
-    max_leaf_nodes : int, optional
-        The maximum number of leaf nodes for the decision tree. This parameter
-        helps control the complexity and prevent overfitting. Defaults to 10.
-    random_state : int, optional
-        Controls the randomness of the estimator's splitting process.
-        - Pass an `int` for reproducible output across multiple function calls.
-        - Pass `None` for a different random state each time.
-        Defaults to 221.
-
-    Returns
-    -------
-    est_dt : sklearn.tree.DecisionTreeRegressor
-        The trained `DecisionTreeRegressor` model instance.
+    tbd
     """
-    # Sanitise feature names for plotting
-    sanitised_features = sanitise_names(features)
 
-    est_dt = DecisionTreeClassifier( # DecisionTreeRegressor(
-        max_leaf_nodes=max_leaf_nodes,
-        random_state=random_state
-    )
-    est_dt.fit(X, y)
+    # decode iteration_performance_list.append([score, tree_size, class_scores])
+    y1 = []
+    y2 = []
+    for iter in iter_perf:
+        y1.append(iter[0])
+        y2.append(iter[1])
 
-    fig, ax = plt.subplots(figsize=(14, 14)) # Using larger figsize to prevent squashed trees
-    tree.plot_tree(est_dt, feature_names=sanitised_features, filled=True, rounded=True, fontsize=9, ax=ax)
+    # Calculate standard deviation
+    std_dev_y1 = np.std(y1)
+    std_dev_y2 = np.std(y2)
+
+    #x = np.arange(1, it_params['n_iter']+1)
+    x = np.arange(1, len(iter_perf)+1)
+
+    fig, ax1 = plt.subplots()
+
+    # Plotting the first value as a bar chart
+    bars = ax1.bar(x, y1, color=col_iter_acc)
     
-    plt.title('Decision Tree Version of our FPT')
+    # Change the color of the score_best_iter bar
+    if best_iter is not None:
+        bars[best_iter].set_color(col_best_iter)
 
-    # export_text prints to console by default; capturing it for potential use or logging
-    tree_text_representation = tree.export_text(est_dt, feature_names=sanitised_features)
-    print('\nDecision Tree Text Representation:\n', tree_text_representation)
+    plt.xticks(fontsize=8)  # Set x-axis label font size to 8
+    plt.yticks(fontsize=8)  # Set x-axis label font size to 8
+    ax1.set_xlabel('Iteration')
+    ax1.set_ylabel(f'Accuracy (std dev={std_dev_y1:.4f})', color=col_iter_acc)
 
-    plt.savefig(out_filename)
-    plt.close() # Close the plot to free memory
+    # Adjust the y-axis limits to the min and max of y1
+    ax1.set_ylim([min(y1)-0.03, max(y1)+0.03])
 
-    return est_dt
+    # Set x-axis ticks to show only integer values
+    ax1.set_xticks(x)
+
+    # Add horizontal line for mean of y1 values
+    mean_y1 = np.mean(y1)
+    ax1.axhline(mean_y1, color=col_iter_acc, linestyle='--', linewidth=1, label=f'Mean of Accuracy: {mean_y1:.2f}')
+
+    # Creating a secondary y-axis for the second value
+    ax2 = ax1.twinx()
+
+    # Adjust the y-axis limits to the min and max of y2
+    ax2.set_ylim([min(y2)-1, max(y2)+1])
+    ax2.set_yticks(y2)
+
+    ax2.scatter(x, y2, color=col_tree_size, marker='o', edgecolors='black',
+                linewidth=1, s=50, alpha=0.7)
+    #ax2.plot(x, y2, color=col_tree_size, marker='o')
+    ax2.set_ylabel(f'Tree Size (std dev={std_dev_y2:.4f})', color=col_tree_size)
+
+    plt.title(title)
+    # Custom legend elements
+    custom_legend = [
+        Line2D([], [], color=col_iter_acc, linestyle='--', linewidth=1, 
+               label=f'Mean of Accuracy: {mean_y1:.2f}'),
+        Line2D([], [], color=col_tree_size, linestyle='None', marker='o', markersize=5, 
+               markeredgecolor='black', markeredgewidth=1, alpha=0.7, label=f'Tree Size'),
+        Patch(color=col_iter_acc, label="Iteration Accuracy"),
+        Patch(color=col_best_iter, label="Best Iteration"),
+    ]
+
+    # Add custom legend
+    ax1.legend(loc='lower left', handles=custom_legend, fontsize=8) # why are these not combined? , title="Custom Legend")
+    if output_filename:
+        plt.savefig(output_filename)
+    else:
+        plt.show()
+    plt.close(fig) # Close the figure to free memory
