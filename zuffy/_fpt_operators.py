@@ -4,36 +4,36 @@ suitable for constructing Fuzzy Pattern Trees (FPT). Each operator performs
 a specific mathematical operation on NumPy arrays, representing fuzzy set memberships.
 
 The functions can be organised thus:
-1. Basic Fuzzy Operators
-    * _minimum (MINIMUM/and)
-    * _maximum (MAXIMUM/or)
-    * _complement (COMPLEMENT/not)
+    1. Basic Fuzzy Operators
+        * _minimum (MINIMUM/and)
+        * _maximum (MAXIMUM/or)
+        * _complement (COMPLEMENT/not)
 
-2. Linguistic Hedges
-    * _diluter (DILUTER)
-    * _diluter_power (used by DILUTER3, DILUTER4)
-    * _concentrator (CONCENTRATOR)
-    * _concentrator_power (used by CONCENTRATOR3, CONCENTRATOR4)
-    * _intensifier (INTENSIFIER)
-    * _diffuser (DIFFUSER)
+    2. Linguistic Hedges
+        * _diluter (DILUTER)
+        * _diluter_power (used by DILUTER3, DILUTER4)
+        * _concentrator (CONCENTRATOR)
+        * _concentrator_power (used by CONCENTRATOR3, CONCENTRATOR4)
+        * _intensifier (INTENSIFIER)
+        * _diffuser (DIFFUSER)
 
-3. Averaging Operators
-    * _weighted_average (used by WA_P1 to WA_P9)
-    * _ordered_weighted_average (used by OWA_P1 to OWA_P9)
+    3. Averaging Operators
+        * _weighted_average (used by WA_P1 to WA_P9)
+        * _ordered_weighted_average (used by OWA_P1 to OWA_P9)
 
-4. T-Norms and T-Conorms
-    * _fuzzy_and (FUZZY_AND - specifically product t-norm)
-    * _fuzzy_or (FUZZY_OR - specifically probabilistic sum t-conorm)
-    * _lukasiewicz_t_norm (LUKASIEWICZ/AND)
-    * _lukasiewicz_t_conorm (LUKASIEWICZ/OR)
-    * _hamacher_t_norm (used by HAMACHER025, HAMACHER050)
-    * _product_t_norm (PRODUCT)
+    4. T-Norms and T-Conorms
+        * _fuzzy_and (FUZZY_AND - specifically product t-norm)
+        * _fuzzy_or (FUZZY_OR - specifically probabilistic sum t-conorm)
+        * _lukasiewicz_t_norm (LUKASIEWICZ/AND)
+        * _lukasiewicz_t_conorm (LUKASIEWICZ/OR)
+        * _hamacher_t_norm (used by HAMACHER025, HAMACHER050)
+        * _product_t_norm (PRODUCT)
 
-5. Conditional Operators
-    * _if_gte (IFGTE)
-    * _if_gte_else (IFGTE2)
-    * _if_lt (IFLT)
-    * _if_lt_else (IFLT2)
+    5. Conditional Operators
+        * _if_gte (IFGTE)
+        * _if_gte_else (IFGTE2)
+        * _if_lt (IFLT)
+        * _if_lt_else (IFLT2)
 
 """
 
@@ -461,7 +461,7 @@ def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> Array
 
     numerator = x0 * x1
     denominator = lambda_param + (1 - lambda_param) * (x0 + x1 - x0 * x1)
-    
+
     # Handle potential division by zero for denominator == 0
     # This specifically addresses the case where lambda_param is 0 and x0+x1-x0*x1 is also 0
     with np.errstate(divide='ignore', invalid='ignore'):

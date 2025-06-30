@@ -10,7 +10,7 @@ assigned sequentially from a predefined or custom pool.
 from typing import List, Dict, Optional
 
 
-class ColorAssigner:
+class ColorAssigner: # pylint: disable=too-few-public-methods
     """
     A base class for assigning cyclical colors to named objects (e.g., features, operators).
 
@@ -39,7 +39,7 @@ class ColorAssigner:
         """
         if not color_pool:
             raise ValueError("`color_pool` cannot be empty.")
-        
+
         self.colors: List[str] = color_pool
         # Maps object_name to its assigned index in self.colors to ensure consistency
         self.assigned_colors: Dict[str, int] = {}
@@ -71,11 +71,11 @@ class ColorAssigner:
             # `len(self.colors)` is guaranteed to be > 0 due to __init__ check.
             color_index = len(self.assigned_colors) % len(self.colors)
             self.assigned_colors[object_name] = color_index
-        
+
         return self.colors[color_index]
 
 
-class FeatureColorAssigner(ColorAssigner):
+class FeatureColorAssigner(ColorAssigner): # pylint: disable=too-few-public-methods
     """
     Manages color assignments specifically for feature objects.
 
@@ -106,11 +106,11 @@ class FeatureColorAssigner(ColorAssigner):
             # Combine custom colors with default colors, ensuring `custom_colors` come first.
             # `list(custom_colors)` creates a shallow copy to avoid modifying the original list.
             color_pool = list(custom_colors) + self._DEFAULT_FEATURE_COLORS
-        
+
         super().__init__(color_pool)
 
 
-class OperatorColorAssigner(ColorAssigner):
+class OperatorColorAssigner(ColorAssigner): # pylint: disable=too-few-public-methods
     """
     Manages color assignments specifically for operator objects.
 
@@ -140,5 +140,5 @@ class OperatorColorAssigner(ColorAssigner):
             # Combine custom colors with default colors, ensuring `custom_colors` come first.
             # `list(custom_colors)` creates a shallow copy to avoid modifying the original list.
             color_pool = list(custom_colors) + self._DEFAULT_OPERATOR_COLORS
-            
+
         super().__init__(color_pool)

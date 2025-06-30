@@ -3,7 +3,6 @@ This module provides functions for Fuzzy Pattern Tree operations and a
 scikit-learn compatible `FuzzyTransformer`.
 """
 
-import numbers
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -45,7 +44,7 @@ def trimf(feature: np.ndarray, abc: Sequence[float]) -> np.ndarray:
     """
     if len(abc) != 3:
         raise ValueError("`abc` parameter must have exactly three elements [a, b, c].")
-    
+
     a, b, c = np.asarray(abc, dtype=float)
     if not (a <= b <= c):
         raise ValueError("`abc` parameters must satisfy the condition `a <= b <= c`.")
@@ -96,6 +95,7 @@ def convert_to_numeric(df: pd.DataFrame, target: str) ->Tuple[List[str], pd.Data
     df[target] = le.fit_transform(df[target])
     return list(le.classes_), df
 
+# pylint: disable=too-many-instance-attributes
 class FuzzyTransformer(BaseEstimator, TransformerMixin):
     """A scikit-learn compatible transformer that converts numerical features into
     fuzzy membership values using triangular membership functions. It also
@@ -144,30 +144,30 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
     Attributes
     ----------
-    n_features_in\_ : int
+    n_features_in\\_ : int
         The number of features seen during :term:`fit`.
 
-    feature_names_in\_ : ndarray of str or None
+    feature_names_in\\_ : ndarray of str or None
         Names of features seen during :term:`fit`. Defined only when `X`
         has feature names that are all strings (e.g., a Pandas DataFrame), or
         when `feature_names` is explicitly provided in `__init__` and `X` is a
         NumPy array.
 
-    columns\_ : pandas.Index
+    columns\\_ : pandas.Index
         The column names of the input DataFrame (or names derived from
         `feature_names` if a NumPy array was provided) seen during `fit`.
 
-    fuzzy_bounds\_ : dict
+    fuzzy_bounds\\_ : dict
         A dictionary storing the `(a, b, c)` parameters for the triangular
         membership functions for each numerical column that was fuzzified.
         Keys are original column names, values are tuples of floats.
 
-    categorical_values\_ : dict
+    categorical_values\\_ : dict
         A dictionary storing the unique categories for each column specified in
         `non_fuzzy`. This ensures consistent one-hot encoding during `transform`.
         Keys are original column names, values are lists of unique categories.
 
-    feature_names_out\_ : list of str
+    feature_names_out\\_ : list of str
         A list of names for the features generated after transformation. This
         attribute is available after the `fit` method has been called.
 
@@ -194,6 +194,8 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         "verbose": [bool],
     }
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         non_fuzzy: Optional[List[str]] = None,
@@ -214,7 +216,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         if not isinstance(self.tags, (list, tuple)) or len(self.tags) != 3 or \
            not all(isinstance(t, str) for t in self.tags):
             raise ValueError("`tags` must be a list or tuple of three strings.")
-        
+
 
     def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Optional[np.ndarray] = None) \
             -> "FuzzyTransformer":
@@ -262,8 +264,8 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
         # Validate feature_names length against column count
         if self.feature_names is not None and len(self.feature_names) != col_cnt:
-            raise ValueError(f"The number of feature_names supplied ({len(self.feature_names)}) does " \
-                             f"not match the number of columns in X ({len(X[0])})")
+            raise ValueError(f"The number of feature_names supplied ({len(self.feature_names)}) " \
+                             f"does not match the number of columns in X ({len(X[0])})")
 
         # Validate X and set n_features_in_ and feature_names_in_
         _ = self._validate_data(
@@ -282,16 +284,18 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
             # In that case, use the names provided in `__init__` (if any), or default names.
             columns_for_df = self.feature_names
             if columns_for_df is None and self.feature_names is not None:
-                 columns_for_df = self.feature_names
+                columns_for_df = self.feature_names
             elif columns_for_df is None:
-                 columns_for_df = [f"x{i}" for i in range(X.shape[1])]
+                columns_for_df = [f"x{i}" for i in range(X.shape[1])]
             X_df = pd.DataFrame(X, columns=columns_for_df)
         else:
             X_df = X.copy() # Work on a copy to avoid modifying original DataFrame
 
         self.columns_ = X_df.columns
-        self.fuzzy_bounds_: Dict[str, Tuple[float, float, float]] = {}  # Store (min, mid, max) for numeric columns
-        self.categorical_values_: Dict[str, List[Any]] = {}  # Store categories for one-hot consistency
+        # Store (min, mid, max) for numeric columns
+        self.fuzzy_bounds_: Dict[str, Tuple[float, float, float]] = {}
+        # Store categories for one-hot consistency
+        self.categorical_values_: Dict[str, List[Any]] = {}
         self.feature_names_out_: List[str] = [] # Initialize output feature names
 
         for col in self.columns_:
@@ -301,7 +305,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                     self.categorical_values_[col] = sorted(X_df[col].dropna().unique().tolist())
                 else:
                     self.categorical_values_[col] = [] # Handle empty column gracefully
-                
+
                 # Add names for one-hot encoded features (col=category)
                 for cat in self.categorical_values_[col]:
                     self.feature_names_out_.append(f"{col}={cat}")
@@ -311,7 +315,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                 if not np.issubdtype(values.dtype, np.number):
                     raise ValueError(f"Column '{col}' must contain numeric data for fuzzification, "
                                      f"but found non-numeric type: {values.dtype}.")
-                
+
                 if values.size == 0:
                     # If column is empty, set default bounds (e.g., for consistency)
                     a, b, c = 0.0, 0.0, 0.0
@@ -370,9 +374,9 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
         temp_X = X.copy()
         if isinstance(X, pd.DataFrame):
-            # set fuzzy cols to zero so that they are retained when subsequently validated 
+            # set fuzzy cols to zero so that they are retained when subsequently validated
             # for transforming
-            temp_X[self.non_fuzzy] = 0  
+            temp_X[self.non_fuzzy] = 0
 
         # Validate X and set n_features_in_ and feature_names_in_
         # Validate input `X` for transformation. `reset=False` ensures that
@@ -427,14 +431,16 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                     if np.any(values < a):
                         out_of_bounds_vals = values[values < a]
                         raise ValueError(
-                            f"The '{col}' feature has values ({np.array2string(out_of_bounds_vals, max_line_width=100)}) "
+                            f"The '{col}' feature has values "
+                            f"({np.array2string(out_of_bounds_vals, max_line_width=100)}) "
                             f"that are less than 'a' ({a:.2f}). Set `oob_check=False` to "
                             f"ignore this warning."
                         )
                     if np.any(values > c):
                         out_of_bounds_vals = values[values > c]
                         raise ValueError(
-                            f"The '{col}' feature has values ({np.array2string(out_of_bounds_vals, max_line_width=100)}) "
+                            f"The '{col}' feature has values "
+                            f"({np.array2string(out_of_bounds_vals, max_line_width=100)}) "
                             f"that are greater than 'c' ({c:.2f}). Set `oob_check=False` to "
                             f"ignore this warning."
                         )

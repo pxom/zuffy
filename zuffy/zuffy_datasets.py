@@ -23,10 +23,8 @@ def prep_data_mushrooms():
         'stalk-color-below-ring', 'veil-type', 'veil-color', 'ring-number',
         'ring-type', 'spore-print-color', 'population', 'habitat']
 
-    #fuzzy_X, fuzzy_features_names = functions.fuzzify_data(X, non_fuzzy, info=False, tags=['low', 'med', 'high'])
     ds_zc_params = {'parsimony_coefficient':0.00025}
     ds_it_params = {'n_iter':15}
-    #return dataset_name, fuzzy_X, y, fuzzy_features_names, target_classes, good_params
     return dataset_name, X, y, non_fuzzy, target_class_names, ds_zc_params, ds_it_params
 
 def prep_data_iris():
@@ -50,12 +48,6 @@ def prep_data_penguin():
     my_data = pd.read_csv(DATASET_FOLDER + 'penguins_size.csv', sep=',', header=0, skiprows=0)
     target_name = 'species'
     non_fuzzy = ['sex','island']
-    #species,island,culmen_length_mm,culmen_depth_mm,flipper_length_mm,body_mass_g,sex
-    #features = ['age','operation_year','positive_auxillary_nodes']
-
-    # remove Nans
-    #print('The number of null values in each feature are:')
-    #print(my_data.isna().sum())
 
     # We remove all rows that contain any null values
     for f in my_data:
@@ -67,34 +59,7 @@ def prep_data_penguin():
     # Drop rows where sex is unknown
     my_data = my_data[ my_data['sex'].isin(['MALE','FEMALE'])]
 
-    #combined = features + [target_name]
-    #my_data.columns = combined
-    #target_classes = my_data[target_name].unique().tolist()
-
     target_class_names, my_data = convert_to_numeric(my_data, target_name)
-    #target_classes, my_data = functions.convert_to_numeric(my_data, target_name)
-
-    # now convert island and sex to numeric
-    #print('We convert the remaining non-numeric data types by getting a numeric representation of the feature by identifying distinct values:')
-    #feature_classes = {}
-    if 0:
-        new_non_fuzzy = []
-        # ohe our non-numerics
-        for f in my_data.select_dtypes(exclude=['number']):
-            if f in non_fuzzy:
-                # one hot these
-                print(f"One hot encoding {f:<16}")
-                ohe = pd.get_dummies(my_data[f]).astype(int)
-                #df["somecolumn"] = df["somecolumn"].astype(int)
-                pfx_cols = [str(f) + ": " + str(item) for item in list(ohe.columns)]
-                ohe.columns = pfx_cols
-                new_non_fuzzy.extend(pfx_cols)
-                my_data = pd.concat([my_data, ohe], axis=1)
-                my_data = my_data.drop(f, axis=1)
-            else:
-                print(f"Converting {f:<16} to numeric")
-                my_data[f], uniques = pd.factorize(my_data[f]) # [0].astype(int)
-                print(uniques)
 
     y = my_data[target_name]
     X = my_data.drop(target_name, axis=1)
@@ -109,25 +74,6 @@ def prep_data_australian():
     my_data = pd.read_csv(DATASET_FOLDER + 'australian.dat', sep=' ', header=0, skiprows=0)
     target_name = 'output'
     target_class_names, my_data = convert_to_numeric(my_data, target_name)
-    new_non_fuzzy = []
-    if 0:
-        # ohe our categorical
-        for f in non_fuzzy: # my_data.select_dtypes(exclude=['number']):
-            if f in non_fuzzy:
-                # one hot these
-                print(f"One hot encoding {f:<16}")
-                ohe = pd.get_dummies(my_data[f]).astype(int)
-                #df["somecolumn"] = df["somecolumn"].astype(int)
-                pfx_cols = [str(f) + ": " + str(item) for item in list(ohe.columns)]
-                ohe.columns = pfx_cols
-                new_non_fuzzy.extend(pfx_cols)
-                my_data = pd.concat([my_data, ohe], axis=1)
-                my_data = my_data.drop(f, axis=1)
-            else:
-                print(f"Converting {f:<16} to numeric")
-                my_data[f], uniques = pd.factorize(my_data[f]) # [0].astype(int)
-                print(uniques)
-                #feature_classes[f] = uniques
 
     y = my_data[target_name]
     X = my_data.drop(target_name, axis=1)
@@ -149,8 +95,6 @@ def prep_data_haberman():
     y = my_data[target_name]
     X = my_data.drop(target_name, axis=1)
 
-    #target_names = ['survived 5+y','died < 5y']
-
     ds_zc_params = {'parsimony_coefficient': 0.0001,'population_size':1000,'generations':15,'tournament_size':25}
     ds_it_params = {}
     return dataset_name, X, y, non_fuzzy, target_class_names, ds_zc_params, ds_it_params
@@ -158,19 +102,13 @@ def prep_data_haberman():
 def prep_data_banknote():
     dataset_name = 'banknote'
     my_data = pd.read_csv(DATASET_FOLDER + 'banknote_Train.csv', sep=' ', header=0, skiprows=0)
-    #features = ['x0','x1','x2','x3']
     target_name = 'y'
-    #target_classes, my_data = functions.convert_to_numeric(my_data, target_name)
-    target_classes  = []
 
     non_fuzzy = []
     y = my_data[target_name]
     X = my_data.drop(target_name, axis=1)
 
-    #target_names = ['survived 5+y','died < 5y']
-    #print(f"{my_data[0]=}")
     target_class_names, my_data = convert_to_numeric(my_data, target_name)
-    #fuzzy_X, fuzzy_features_names = functions.fuzzify_data(X, non_fuzzy, info=False, tags=['low', 'med', 'high'])
 
     ds_zc_params = {'parsimony_coefficient': 0.0009,'population_size':1300,'generations':30,'tournament_size':80}
     ds_it_params = {}
@@ -251,19 +189,11 @@ def prep_data_cleveland():
     features_to_normalise = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak']
     my_slice = my_data.loc[:, features_to_normalise]
     my_slice = (my_slice - my_data.mean())/my_slice.std()
-    #my_data.loc[:, features_to_normalise] = (my_data.loc[:, features_to_normalise] - my_data.loc[:, features_to_normalise].mean())/my_data.loc[:, features_to_normalise].std()
     my_data[features_to_normalise] = my_slice[features_to_normalise]
     
     y = my_data[target_name]
     X = my_data.drop(target_name, axis=1)
 
-    #fuzzy_X, fuzzy_features_names = functions.fuzzify_data(X, non_fuzzy, info=False, tags=['low', 'med', 'high'])
-    good_params = {
-            'p_crossover':              0.65,
-            'p_point_mutation':         0.15,
-            'p_subtree_mutation':       0.15,
-            'p_hoist_mutation':         0.05,
-        }
     ds_zc_params = {'parsimony_coefficient': 0.001,'population_size':3000,'generations':25,'tournament_size':75}
     ds_it_params = {}
     return dataset_name, X, y, non_fuzzy, target_class_names, ds_zc_params, ds_it_params
@@ -290,47 +220,16 @@ def prep_data_adult(): # UCI - can't find url.  note: using training dataset onl
     my_data.columns = ['age','workclass','fnlwgt','education','education-num','marital-status','occupation','relationship','race','sex',
                        'capital-gain','capital-loss','hours-per-week','native-country','income']
 
-    # need to drop rows with ca=?
-    #i = my_data[((my_data.ca == '?') | (my_data.thal == '?'))].index
-    #my_data.drop(i, inplace=True)
     my_data.drop(['education-num'], axis=1, inplace=True) # correlated directly to education
 
     target_name = 'income'
-    # we want to use this data in a binary classification context so map all values >0 (ie. those that indicate disease) to 1
-    #my_data.loc[my_data[target_name]>1,target_name] = 1
-
-    #target_classes, my_data = functions.convert_to_numeric(my_data, target_name)
     target_class_names, my_data = convert_to_numeric(my_data, target_name)
 
-    # convert all data to float
-    #my_data = my_data.astype(float)
-
     non_fuzzy =  ['workclass','education','marital-status','occupation','relationship','race','sex','native-country']
-    # convert non fuzzy back to integers for neater display
-    #my_data[non_fuzzy] = my_data[non_fuzzy].astype(int)
 
-    # do we actually want to normalise here? I don't think so and the results don't appear to be better
-    #features_to_normalise = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak']
-    #my_slice = my_data.loc[:, features_to_normalise]
-    #my_slice = (my_slice - my_data.mean())/my_slice.std()
-    #my_data[features_to_normalise] = my_slice[features_to_normalise]
-    
-    # why would we OHE our target variable?
-    #outputsOneHot = pd.get_dummies(my_data[target_name], columns=[target_name])
-    #y = outputsOneHot.to_numpy()
-    
     y = my_data[target_name]
-
-
     X = my_data.drop(target_name, axis=1)
 
-    #fuzzy_X, fuzzy_features_names = functions.fuzzify_data(X, non_fuzzy, info=False, tags=['low', 'med', 'high'])
-    good_params = {
-            'p_crossover':              0.65,
-            'p_point_mutation':         0.15,
-            'p_subtree_mutation':       0.15,
-            'p_hoist_mutation':         0.05,
-        }
     ds_zc_params = {'parsimony_coefficient': 0.00005,'population_size':1000,'generations':50,'tournament_size':50}
     ds_it_params = {}
     return dataset_name, X, y, non_fuzzy, target_class_names, ds_zc_params, ds_it_params

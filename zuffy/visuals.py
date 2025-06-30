@@ -32,6 +32,8 @@ DEFAULT_GRAPH_FONT_SIZE = "22"
 DEFAULT_ROOT_TEXT = "WTA"
 DEFAULT_OUTPUT_FILENAME = "zuffy_output"
 DEFAULT_CONSTANT_COLOR = '#D3D3D3' # Light grey for constant nodes
+# Use a large scale to ensure unique node IDs across multiple sub-trees within the same graph.
+NODE_ID_OFFSET = 1000
 
 def _add_importance(feature_metrics: List[Union[float, int]]) -> str:
     """
@@ -67,7 +69,8 @@ def _add_importance(feature_metrics: List[Union[float, int]]) -> str:
 
     f_mean, f_std, f_rank = feature_metrics
     if not isinstance(f_mean, (float, int)):
-        raise ValueError(f"The mean importance value must be numeric, but found: {f_mean} (type: {type(f_mean)}).")
+        raise ValueError(f"The mean importance value must be numeric, but found: "
+                         f"{f_mean} (type: {type(f_mean)}).")
 
     # Use f-strings for direct rounding and HTML entity for ±
     extra_html = (
@@ -145,7 +148,8 @@ def _output_node(i: int, node: Union[int, float], feature_names: Optional[List[s
 
         dot_string += (
             f'{i} [label=<\n'
-            f'  <table border="1" cellborder="0" cellspacing="6" cellpadding="3" bgColor="{fill_color}">\n'
+            f'  <table border="1" cellborder="0" cellspacing="6" cellpadding="3" '
+            f'   bgColor="{fill_color}">\n'
             f'    <tr><td>{display_feature_name}</td></tr>\n'
             f'    {extra_html}\n' # Empty string if no importance, otherwise a <tr>
             f'  </table>>,\n'
@@ -251,13 +255,15 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
                          f'supplied for this program (which expects {program._n_features}).')
 
     # Initialise the color assigners, if not provided
-    operator_color_assigner = operator_col_fn if operator_col_fn is not None else OperatorColorAssigner()
-    feature_color_assigner = feature_col_fn if feature_col_fn is not None else FeatureColorAssigner()
+    operator_color_assigner = operator_col_fn if operator_col_fn is not None \
+                                                else OperatorColorAssigner()
+    feature_color_assigner = feature_col_fn if feature_col_fn is not None \
+                                                else FeatureColorAssigner()
 
     # Stack to manage operator arity and children, for building edges.
     # Each element: [remaining_arity, parent_id, child1_id, child2_id, ...]
     terminals_stack: List[List[Union[int, Any]]] = []
-    
+
     dot_output = ''
 
     for i, node in enumerate(program.program):
@@ -267,10 +273,12 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
             # This is an operator node containing a Function
             terminals_stack.append([node.arity, current_node_id]) # Add operator to stack
             node_fill_color = operator_color_assigner.get_color(node.name)
-            dot_output += (f'{current_node_id} [label="{node.name}", style=filled, fillcolor="{node_fill_color}", color="#999999"] ;\n')
+            dot_output += (f'{current_node_id} [label="{node.name}", style=filled, '
+                           f'fillcolor="{node_fill_color}", color="#999999"] ;\n')
         else: # This is a terminal node containing a Feature (or a constant)
             # _output_node handles feature/constant specific styling and labels
-            dot_output += _output_node(current_node_id, node, feature_names, feature_color_assigner, imp_feat)
+            dot_output += _output_node(current_node_id, node, feature_names,
+                                       feature_color_assigner, imp_feat)
 
             # Handle the degenerative case where the program is a single node (a terminal)
             if i == 0 and not terminals_stack:
@@ -291,7 +299,7 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
                     dot_output += f'{parent_id} -> {child_id} ;\n'
 
                 terminals_stack.pop() # Remove the completed operator from the stack.
-                
+
                 # If there's a parent operator for the just-completed sub-tree (i.e., not root)
                 if terminals_stack:
                     # The just-completed operator (parent_id) now becomes a child of its parent.
@@ -411,21 +419,21 @@ def graphviz_tree(
         If `target_class_names` is provided but its length is insufficient to
         represent all the sub-estimators (classes) in the model.
     """
-    
+
     # Basic model structure validation for essential attributes.
     if not hasattr(model, 'multi_') or not hasattr(model.multi_, 'estimators_'):
         raise AttributeError(
             "The model must have a 'multi_' attribute, which in turn must have "
             "an 'estimators_' attribute (e.g., `model.multi_.estimators_`)."
         )
-    
+
     # Initialise the color assigners
     operator_color_assigner = OperatorColorAssigner(oper_color_list)
     feature_color_assigner = FeatureColorAssigner(feat_color_list)
 
     # Determine feature names for the graph. Prioritise explicitly provided names.
     if feature_names is None:
-        # Check for standard scikit-learn feature_names_in_ attribute on the inner estimator.
+        # Check for standard scikit-learn 'feature_names_in_' attribute on the inner estimator.
         if hasattr(model.multi_.estimators_[0], 'feature_names_in_') and \
            model.multi_.estimators_[0].feature_names_in_ is not None:
             feature_names = model.multi_.estimators_[0].feature_names_in_.tolist()
@@ -433,7 +441,8 @@ def graphviz_tree(
         elif hasattr(model.multi_.estimators_[0], 'feature_names') and \
              model.multi_.estimators_[0].feature_names is not None:
             feature_names = model.multi_.estimators_[0].feature_names
-        # If no feature names found, `feature_names` remains None, and _output_node will use generic names.
+        # If no feature names found, `feature_names` remains None, and
+        # _output_node will use generic names.
     feature_names = sanitise_names(feature_names) # Sanitise for HTML display
 
     # Determine target class names. Prioritise explicitly provided names.
@@ -446,12 +455,10 @@ def graphviz_tree(
 
     # Ensure provided target_class_names are sufficient and sanitise them.
     if len(target_class_names) < len(model.multi_.estimators_):
-        raise ValueError(f'Insufficient `target_class_names` ({len(target_class_names)}) '
-                         f'supplied to represent each of the {len(model.multi_.estimators_)} classes.')
+        raise ValueError(f'Insufficient `target_class_names` ({len(target_class_names)}) supplied'
+                         f' to represent each of the {len(model.multi_.estimators_)} classes.')
     target_class_names = sanitise_names(target_class_names)
 
-    # Use a large scale to ensure unique node IDs across multiple sub-trees within the same graph.
-    NODE_ID_OFFSET = 1000
     wta_id = (len(model.multi_.estimators_) + 1) * NODE_ID_OFFSET # Unique ID for the WTA root node.
 
     # Build the DOT script incrementally.
@@ -465,7 +472,7 @@ def graphviz_tree(
 
     if tree_name:
         dot_script_parts.append(f'label="{html.escape(str(tree_name))}"')
-        dot_script_parts.append(f'labelloc = t') # Place label at the top.
+        dot_script_parts.append('labelloc = t') # Place label at the top.
 
     wta_edges: List[str] = [] # Edges from WTA root to each sub-tree.
     wta_ports_html: List[str] = [] # HTML for ports in the WTA root node.
@@ -498,15 +505,18 @@ def graphviz_tree(
         fitness_info = ""
         if show_fitness and hasattr(estimator._program, 'raw_fitness_'):
             fitness_info = f" ({estimator._program.raw_fitness_:.3f})"
-        
+
         # Sanitise class names for display in the HTML label of the WTA node.
         sanitised_target_class = html.escape(target_class_names[idx])
-        wta_ports_html.append(f"<td port=\"port_{idx}\">{html.escape(target_feature_name)}={sanitised_target_class}{fitness_info}</td>")
+        wta_ports_html.append(f"<td port=\"port_{idx}\">{html.escape(target_feature_name)}="
+                              f"{sanitised_target_class}{fitness_info}</td>")
 
     # Define the central root node (WTA - Winner Takes All).
     # It uses an HTML-like label for complex layout with ports.
     dot_script_parts.append(
-        f'{wta_id} [label=<<table border="1" cellborder="1" bgcolor="{root_bg_color}"><tr><td colspan="{len(model.multi_.estimators_)}">{root_text}</td></tr><tr>{"".join(wta_ports_html)}</tr></table>>, '
+        f'{wta_id} [label=<<table border="1" cellborder="1" bgcolor="{root_bg_color}">'
+        f'<tr><td colspan="{len(model.multi_.estimators_)}">{root_text}</td></tr>'
+        f'<tr>{"".join(wta_ports_html)}</tr></table>>, '
         f'color="black", shape=plaintext, width=4, fontname="{DEFAULT_GRAPH_FONT}"] ;\n'
     )
     dot_script_parts.extend(wta_edges) # Add all WTA-to-sub-tree edges.
@@ -521,7 +531,7 @@ def graphviz_tree(
 
     if source_filename is not None:
         # Write the raw DOT script to a specified file for debugging/review.
-        with open(source_filename, 'w') as file:
+        with open(source_filename, 'w', encoding="utf-8") as file:
             file.write(full_dot_script)
 
     return full_dot_script, graph
@@ -588,8 +598,8 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
             target_class_names = [f'Class {i}' for i in range(len(model.multi_.estimators_))]
 
     if len(target_class_names) < len(model.multi_.estimators_):
-        raise ValueError(f'Insufficient `target_class_names` ({len(target_class_names)}) '
-                         f'supplied to represent each of the {len(model.multi_.estimators_)} classes.')
+        raise ValueError(f'Insufficient `target_class_names` ({len(target_class_names)}) supplied'
+                         f' to represent each of the {len(model.multi_.estimators_)} classes.')
     target_class_names = sanitise_names(target_class_names) # Sanitise for plot titles.
 
     num_estimators = len(model.multi_.estimators_)
@@ -602,26 +612,33 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
         # Ensure `run_details_` is available on each sub-estimator for plotting.
         if not hasattr(estimator, 'run_details_'):
             raise AttributeError(
-                f"Estimator for class '{target_class_names[idx]}' is missing 'run_details_' attribute. "
-                "Ensure the gplearn model was fitted with `verbose=1` or `low_memory=False` to store run details."
+                f"Estimator for class '{target_class_names[idx]}' is missing "
+                "'run_details_' attribute. Ensure the gplearn model was fitted with "
+                "`verbose=1` or `low_memory=False` to store run details."
             )
-        
+
         run_details = estimator.run_details_
-        
+
         # Plot 1: Tree Length Evolution
         ax1 = fig.add_subplot(num_estimators, num_cols, idx * num_cols + 1)
-        ax1.set_title(f'Class: {target_class_names[idx]}\nTree Length (Final Avg: {run_details["average_length"][-1]:.2f})')
-        ax1.plot(run_details['generation'], run_details['average_length'], color='tab:blue', label='Average')
-        ax1.plot(run_details['generation'], run_details['best_length'], color='tab:orange', label='Best')
+        ax1.set_title(f'Class: {target_class_names[idx]}\nTree Length '
+                      f'(Final Avg: {run_details["average_length"][-1]:.2f})')
+        ax1.plot(run_details['generation'], run_details['average_length'],
+                 color='tab:blue', label='Average')
+        ax1.plot(run_details['generation'], run_details['best_length'],
+                 color='tab:orange', label='Best')
         ax1.set_xlabel('Generation')
         ax1.set_ylabel('Length')
         ax1.legend()
 
         # Plot 2: Fitness Evolution (smaller is better)
         ax2 = fig.add_subplot(num_estimators, num_cols, idx * num_cols + 2)
-        ax2.set_title(f'Fitness (smaller is better)\nFinal Best: {run_details["best_fitness"][-1]:.3f}')
-        ax2.plot(run_details['generation'], run_details['average_fitness'], color='tab:purple', label='Average')
-        ax2.plot(run_details['generation'], run_details['best_fitness'], color='tab:green', label='Best')
+        ax2.set_title(f'Fitness (smaller is better)\n'
+                      f'Final Best: {run_details["best_fitness"][-1]:.3f}')
+        ax2.plot(run_details['generation'], run_details['average_fitness'],
+                 color='tab:purple', label='Average')
+        ax2.plot(run_details['generation'], run_details['best_fitness'],
+                 color='tab:green', label='Best')
         ax2.set_xlabel('Generation')
         ax2.set_ylabel('Fitness')
         ax2.legend()
@@ -658,9 +675,11 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
     },
     prefer_skip_nested_validation=True
 )
-def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, features: Optional[List[str]] = None,
-                            n_jobs: Optional[int] = None, n_repeats: int = 20, output_filename: Optional[str] = None) \
-                            -> Dict[str, List[Union[float, int]]]:
+def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
+                            features: Optional[List[str]] = None,
+                            n_jobs: Optional[int] = None, n_repeats: int = 20,
+                            output_filename: Optional[str] = None
+                            ) -> Dict[str, List[Union[float, int]]]:
     """
     Calculates and displays permutation feature importances for a given model.
 
@@ -710,7 +729,7 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, fe
                 features = first_estimator.feature_names
             elif hasattr(first_estimator, 'feature_names_in_'): # scikit-learn standard
                 features = first_estimator.feature_names_in_.tolist()
-    
+
     if features is None:
         # Fallback if feature names are not provided and not found in the model
         features = [f'X{i}' for i in range(X_test.shape[1])]
@@ -718,7 +737,8 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, fe
     # Sanitise feature names for use as plot labels
     sanitised_features = sanitise_names(features)
 
-    print(f"Calculating permutation importances with {n_repeats} repeats and {n_jobs if n_jobs is not None else 1} jobs...")
+    print(f"Calculating permutation importances with {n_repeats} repeats and "
+          f"{n_jobs if n_jobs is not None else 1} jobs...")
     start_time = time.time()
     # `permutation_importance` requires a fitted estimator and test data
     result = permutation_importance(reg, X_test, y_test, n_repeats=n_repeats, n_jobs=n_jobs)
@@ -743,17 +763,18 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, fe
         if mean_importance > 0 or (mean_importance == 0 and std_importance > 0):
             original_feature_name = features[i] # Use original for internal dict keys
             display_feature_name = sanitised_features[i] # Use sanitised for graph labels
-            
+
             imp_feat_dict[original_feature_name] = [mean_importance, std_importance, rank]
             imp_graph_names.append(display_feature_name)
             imp_graph_values.append(mean_importance)
-            print(f"Rank {rank}: {display_feature_name:<40} {mean_importance:.3f} +/- {std_importance:.3f}")
+            print(f"Rank {rank}: {display_feature_name:<40} {mean_importance:.3f} "
+                  f"+/- {std_importance:.3f}")
             rank += 1
 
     if not imp_graph_names:
         print("No features with non-zero importance found.")
         return imp_feat_dict # Return empty if no important features
-    
+
     # Plot permutation feature importances
     fig, ax = plt.subplots(figsize=(12, 7))
     ax.bar(imp_graph_names, imp_graph_values, color='#ffcc33')
@@ -783,9 +804,10 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray, fe
     },
     prefer_skip_nested_validation=True
 )
-def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] = None, 
-                title: Optional[str] = "Iteration Performance", output_filename: Optional[str] = None,
-                col_iter_acc: Optional[str] = "#1c9fea", col_best_iter: Optional[str] = "#386938", 
+def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] = None,
+                title: Optional[str] = "Iteration Performance",
+                output_filename: Optional[str] = None, col_iter_acc: Optional[str] = "#1c9fea",
+                col_best_iter: Optional[str] = "#386938",
                 col_tree_size: Optional[str] = "#755801") -> None:
     """
     tbd
@@ -794,9 +816,9 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     # decode iteration_performance_list.append([score, tree_size, class_scores])
     y1 = []
     y2 = []
-    for iter in iter_perf:
-        y1.append(iter[0])
-        y2.append(iter[1])
+    for i in iter_perf:
+        y1.append(i[0])
+        y2.append(i[1])
 
     # Calculate standard deviation
     std_dev_y1 = np.std(y1)
@@ -809,7 +831,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
 
     # Plotting the first value as a bar chart
     bars = ax1.bar(x, y1, color=col_iter_acc)
-    
+
     # Change the color of the score_best_iter bar
     if best_iter is not None:
         bars[best_iter].set_color(col_best_iter)
@@ -827,7 +849,8 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
 
     # Add horizontal line for mean of y1 values
     mean_y1 = np.mean(y1)
-    ax1.axhline(mean_y1, color=col_iter_acc, linestyle='--', linewidth=1, label=f'Mean of Accuracy: {mean_y1:.2f}')
+    ax1.axhline(mean_y1, color=col_iter_acc, linestyle='--', linewidth=1,
+                label=f'Mean of Accuracy: {mean_y1:.2f}')
 
     # Creating a secondary y-axis for the second value
     ax2 = ax1.twinx()
@@ -844,16 +867,16 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     plt.title(title)
     # Custom legend elements
     custom_legend = [
-        Line2D([], [], color=col_iter_acc, linestyle='--', linewidth=1, 
+        Line2D([], [], color=col_iter_acc, linestyle='--', linewidth=1,
                label=f'Mean of Accuracy: {mean_y1:.2f}'),
-        Line2D([], [], color=col_tree_size, linestyle='None', marker='o', markersize=5, 
-               markeredgecolor='black', markeredgewidth=1, alpha=0.7, label=f'Tree Size'),
+        Line2D([], [], color=col_tree_size, linestyle='None', marker='o', markersize=5,
+               markeredgecolor='black', markeredgewidth=1, alpha=0.7, label='Tree Size'),
         Patch(color=col_iter_acc, label="Iteration Accuracy"),
         Patch(color=col_best_iter, label="Best Iteration"),
     ]
 
     # Add custom legend
-    ax1.legend(loc='lower left', handles=custom_legend, fontsize=8) # why are these not combined? , title="Custom Legend")
+    ax1.legend(loc='lower left', handles=custom_legend, fontsize=8)
     if output_filename:
         plt.savefig(output_filename)
     else:

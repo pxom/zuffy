@@ -17,8 +17,6 @@ except PackageNotFoundError:
 
 __all__ = [
     "ZuffyClassifier",
-    "FuzzyTransformer",
-    "ZuffyFitIterator",
     "visuals",
     "__version__",
 ]

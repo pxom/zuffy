@@ -6,7 +6,6 @@ This module contains the Zuffy Classifier and supporting methods and functions.
 
 import numbers # for scikit learn Interval
 import numpy as np
-import sklearn # so that we can check the version number
 from sklearn.base import BaseEstimator, ClassifierMixin, _fit_context
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.utils._param_validation import StrOptions, Interval
@@ -15,18 +14,18 @@ from sklearn.utils.validation import check_is_fitted
 
 from gplearn.genetic import SymbolicClassifier
 
-from ._fpt_operators import *
-
+from ._fpt_operators import COMPLEMENT, MAXIMUM, MINIMUM
 
 class ZuffyClassifier(ClassifierMixin, BaseEstimator):
     """A Fuzzy Pattern Tree Classifier which uses genetic programming to infer the model structure.
 
-    This classifier wraps ``gplearn.genetic.SymbolicClassifier`` and handles multi-class classification
-    using ``sklearn.multiclass.OneVsRestClassifier`` or ``sklearn.multiclass.OneVsOneClassifier``. It uses
-    the OneVsRestClassifier classifier to handle multi-class classifications by default.
+    This classifier wraps ``gplearn.genetic.SymbolicClassifier`` and handles multi-class 
+    classification using ``sklearn.multiclass.OneVsRestClassifier`` or 
+    ``sklearn.multiclass.OneVsOneClassifier``. It uses the OneVsRestClassifier classifier to 
+    handle multi-class classifications by default.
 
-    These parameters are passed through to the gplearn SymbolicClassifier and further documentation is
-    available on that at
+    These parameters are passed through to the gplearn SymbolicClassifier and further documentation
+    is available on that at
     https://gplearn.readthedocs.io/en/stable/reference.html#gplearn.genetic.SymbolicClassifier.
 
     Parameters
@@ -143,16 +142,16 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
 
     Attributes
     ----------
-    classes_ : ndarray of shape (n_classes,)
+    classes\\_ : ndarray of shape (n_classes,)
         The unique class labels observed in `y`.
 
-    multi_ : OneVsRestClassifier or OneVsOneClassifier
+    multi\\_ : OneVsRestClassifier or OneVsOneClassifier
         The underlying scikit-learn multi-class classifier used for training.
 
-    n_features_in_ : int
+    n_features_in\\_ : int
         Number of features seen during `fit`.
 
-    feature_names_in_ : ndarray of str, shape (`n_features_in_`,)
+    feature_names_in\\_ : ndarray of str, shape (`n_features_in_`,)
         Names of features seen during `fit`. Defined only when `X`
         has feature names that are all strings.
 
@@ -174,6 +173,9 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
 
     """
 
+    # pylint: disable=too-many-instance-attributes
+    # We need this for gplearn compatibility
+
     _parameter_constraints = {
         # The domain for the parameters is mostly defined by the gplearn classifier
         "class_weight": [StrOptions({'balanced'}), dict, None],
@@ -193,7 +195,8 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         "p_point_mutation": [Interval(numbers.Real, 0, 1, closed="both")],
         "p_point_replace": [Interval(numbers.Real, 0, 1, closed="both")],
         "p_subtree_mutation": [Interval(numbers.Real, 0, 1, closed="both")],
-        "parsimony_coefficient": [Interval(numbers.Real, 0, 1, closed="both"), StrOptions({"auto"})],
+        "parsimony_coefficient": [Interval(numbers.Real, 0, 1, closed="both"),
+                                   StrOptions({"auto"})],
         "population_size": [Interval(numbers.Integral, 1, None, closed="left")],
         "random_state": ["random_state"],
         "stopping_criteria": [Interval(numbers.Real, 0, None, closed="both")],
@@ -208,6 +211,11 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         MAXIMUM,
         MINIMUM
     )
+
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-many-locals
+    # We need this for gplearn compatibility
 
     def __init__(
         self,
@@ -243,6 +251,7 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         or `sklearn.multiclass` wrappers. Refer to their respective documentations for
         detailed explanations.
         """
+
         self.class_weight = class_weight
         self.const_range = const_range
         self.feature_names = feature_names
@@ -269,6 +278,11 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         self.verbose = verbose
         self.warm_start = warm_start
 
+        self.multi_ = None
+        self.classes_ = None
+        self.X_ = None
+        self.y_ = None
+
     @_fit_context(prefer_skip_nested_validation=True)
     def fit(self, X, y):
         """Fit the Fuzzy Pattern Tree Classifier.
@@ -287,14 +301,11 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
             Returns self.
         """
         # `_validate_data` is defined in the `BaseEstimator` class.
-        # It runs different checks on the input data and defines some attributes associated 
+        # It runs different checks on the input data and defines some attributes associated
         # with the input data: `n_features_in_` and `feature_names_in_`.
 
-        if sklearn.__version__ < '1.6.0': # too many issues with OvR and gplearn so require sklearn < 1.6.0
-            X, y = self._validate_data(X, y)
-        else:
-            X, y = validate_data(X, y)
-        
+        X, y = self._validate_data(X, y)
+
         # We need to make sure that we have a classification task
         check_classification_targets(y)
 
@@ -329,8 +340,7 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
             'tournament_size': self.tournament_size,
             'transformer': self.transformer,
             'verbose': 0 if self.multiclassifier=='OneVsOneClassifier' else self.verbose,
-            'warm_start': self.warm_start,
-            'n_jobs': 1 # This n_jobs overrides the outer n_jobs for the base SymbolicClassifier
+            'warm_start': self.warm_start
             }
 
         if self.multiclassifier=='OneVsOneClassifier':
@@ -339,14 +349,15 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
                     n_jobs=self.n_jobs,
                     )
         elif self.multiclassifier=='OneVsRestClassifier':
-            self.multi_ = OneVsRestClassifier( 
+            self.multi_ = OneVsRestClassifier(
                     SymbolicClassifier(**base_params),
                     n_jobs=self.n_jobs,
                     verbose=self.verbose
                     )
         else:
             raise ValueError('multiclassifier must be one of: '
-                             f'OneVsOneClassifier, OneVsRestClassifier. Found {self.multiclassifier}')
+                             'OneVsOneClassifier, OneVsRestClassifier. '
+                             f'Found {self.multiclassifier}')
 
         self.multi_.fit(X,y)
         # Return the classifier - this is required by scikit-learn fit method
@@ -372,7 +383,7 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         X = self._validate_data(X, reset=False) # `reset=False` to preserve `n_features_in_` etc.
 
         return self.multi_.predict(X)
-    
+
     def predict_proba(self, X):
         """Predict class probabilities for samples in X.
 
@@ -395,6 +406,6 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
                 f"X has {X.shape[1]} features, but this ZuffyClassifier was "
                 f"fitted with {self.n_features_in_} features."
             )
-        
+
         # Delegate probability prediction to the underlying multi-class classifier
-        return self.multi_.predict_proba(X)    
+        return self.multi_.predict_proba(X)

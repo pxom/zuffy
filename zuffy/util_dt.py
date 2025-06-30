@@ -24,7 +24,8 @@ from sklearn.utils._param_validation import Interval, validate_params
     prefer_skip_nested_validation=True
 )
 def do_model_dt(X: np.ndarray, y: np.ndarray, features: Optional[List[str]], output_filename: str,
-                max_leaf_nodes: Optional[int] = 10, random_state: Optional[int] = 221) -> DecisionTreeClassifier:
+                max_leaf_nodes: Optional[int] = 10, random_state: Optional[int] = None
+                ) -> DecisionTreeClassifier:
     """
     Trains a Decision Tree Classifier model and exports its visualization.
 
@@ -66,9 +67,9 @@ def do_model_dt(X: np.ndarray, y: np.ndarray, features: Optional[List[str]], out
     )
     est_dt.fit(X, y)
 
-    fig, ax = plt.subplots(figsize=(14, 14)) # Using larger figsize to prevent squashed trees
+    _, ax = plt.subplots(figsize=(14, 14)) # Using larger figsize to prevent squashed trees
     tree.plot_tree(est_dt, feature_names=features, filled=True, rounded=True, fontsize=9, ax=ax)
-    
+
     plt.title('Decision Tree using Fuzzified Dataset')
 
     # export_text prints to console by default; capturing it for potential use or logging
