@@ -1,0 +1,31 @@
+digraph G {
+bgcolor="white"
+fontname="Helvetica"
+fontsize="22"
+node [fontname="Helvetica"]
+label="Adult Dataset (Accuracy: 0.787)"
+labelloc = t
+0 [label="MAXIMUM/or", style=filled, fillcolor="#f8ffef", color="#999999"] ;
+1 [label="COMPLEMENT/not", style=filled, fillcolor="#f8ffff", color="#999999"] ;
+2 [label=<
+  <table border="1" cellborder="0" cellspacing="6" cellpadding="3"    bgColor="#4f77d4">
+    <tr><td>lo capital-gain<br/> (0.00 to 49999.50)</td></tr>
+    
+  </table>>,
+  color="black", shape=none
+] ;
+1 -> 2 ;
+3 [label=<
+  <table border="1" cellborder="0" cellspacing="6" cellpadding="3"    bgColor="#ff7f0e">
+    <tr><td>hi capital-loss<br/> (2178.00 to 4356.00)</td></tr>
+    
+  </table>>,
+  color="black", shape=none
+] ;
+0 -> 1 ;
+0 -> 3 ;
+
+2000 [label=<<table border="1" cellborder="1" bgcolor="#ddddff"><tr><td colspan="1">WTA</td></tr><tr><td port="port_0">income= &amp;lt;=50K</td></tr></table>>, color="black", shape=plaintext, width=4, fontname="Helvetica"] ;
+
+2000:port_0 -> 0;
+}
