@@ -372,11 +372,16 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         """
         check_is_fitted(self) # Ensure the transformer has been fitted.
 
-        temp_X = X.copy()
-        if isinstance(X, pd.DataFrame):
-            # set fuzzy cols to zero so that they are retained when subsequently validated
-            # for transforming
-            temp_X[self.non_fuzzy] = 0
+        # Convert to DataFrame if not already, using the column names seen during fit.
+        if not isinstance(X, pd.DataFrame):
+            # _validate_data already checked n_features.
+            X_df = pd.DataFrame(X, columns=self.columns_)
+        else:
+            X_df = X.copy()
+
+        # Zeroise non fuzzy columns
+        temp_X = X_df.copy()
+        temp_X[self.non_fuzzy] = 0
 
         # Validate X and set n_features_in_ and feature_names_in_
         # Validate input `X` for transformation. `reset=False` ensures that
@@ -387,13 +392,6 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
             accept_sparse=False,
             force_all_finite='allow-nan'
         )
-
-        # Convert to DataFrame if not already, using the column names seen during fit.
-        if not isinstance(X, pd.DataFrame):
-            # _validate_data already checked n_features.
-            X_df = pd.DataFrame(X, columns=self.columns_)
-        else:
-            X_df = X.copy()
 
         # Explicitly check if DataFrame columns match the fitted columns.
         if not self.columns_.equals(X_df.columns):

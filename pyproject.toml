@@ -1,13 +1,13 @@
 [project]
 name = "zuffy"
-version = "0.2"
+version = "0.3"
 authors = [{ name="POM", email="zuffy@mahoonium.ie" },]
-description = "Zuffy is a sklearn compatible open source python library for explainable machine learning through Fuzzy Pattern Trees"
+description = "Zuffy is a sklearn compatible open source python library that uses GP to induce Fuzzy Pattern Trees"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
 "Programming Language :: Python :: 3",
-"License :: OSI Approved :: MIT License",
+"License = 'MIT AND (Apache-2.0 OR BSD-2-Clause)'",
 "Operating System :: OS Independent",
 ]
 [project.urls]

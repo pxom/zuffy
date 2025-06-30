@@ -839,7 +839,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     plt.xticks(fontsize=8)  # Set x-axis label font size to 8
     plt.yticks(fontsize=8)  # Set x-axis label font size to 8
     ax1.set_xlabel('Iteration')
-    ax1.set_ylabel(f'Accuracy (std dev={std_dev_y1:.4f})', color=col_iter_acc)
+    ax1.set_ylabel(f'Accuracy (std dev={std_dev_y1:.3f})', color=col_iter_acc)
 
     # Adjust the y-axis limits to the min and max of y1
     ax1.set_ylim([min(y1)-0.03, max(y1)+0.03])
@@ -861,8 +861,11 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
 
     ax2.scatter(x, y2, color=col_tree_size, marker='o', edgecolors='black',
                 linewidth=1, s=50, alpha=0.7)
-    #ax2.plot(x, y2, color=col_tree_size, marker='o')
-    ax2.set_ylabel(f'Tree Size (std dev={std_dev_y2:.4f})', color=col_tree_size)
+    ax2.set_ylabel(f'Tree Size (std dev={std_dev_y2:.3f})', color=col_tree_size)
+
+    # Draw lines from top of bar to tree size ball
+    for xb, h, yb in zip(x, y1, y2):
+        ax2.plot([xb, xb], [h, yb], color=col_tree_size, linestyle=':', linewidth=1)
 
     plt.title(title)
     # Custom legend elements
@@ -872,11 +875,13 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
         Line2D([], [], color=col_tree_size, linestyle='None', marker='o', markersize=5,
                markeredgecolor='black', markeredgewidth=1, alpha=0.7, label='Tree Size'),
         Patch(color=col_iter_acc, label="Iteration Accuracy"),
-        Patch(color=col_best_iter, label="Best Iteration"),
+        Patch(color=col_best_iter, label=f"Best Iteration ({max(y1):.2f})"),
     ]
 
     # Add custom legend
-    ax1.legend(loc='lower left', handles=custom_legend, fontsize=8)
+    ax1.legend(loc='lower left', handles=custom_legend, fontsize=7, bbox_to_anchor=(1, 1))
+    plt.tight_layout()
+
     if output_filename:
         plt.savefig(output_filename)
     else:
