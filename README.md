@@ -15,13 +15,14 @@
 Zuffy is a python package for exploring Fuzzy Pattern Trees and it is compatible with [scikit-learn](https://scikit-learn.org).
 
 It aims to provide a simple set of tools for the exploration of FPTs that are induced using 
-genetic programming techniques.
+genetic programming (GP) techniques. The GP functionality is provided by the gplearn library
+and the author is grateful to its creator, Trevor Stephens, for his work on this.
 
 Refer to the documentation for further information.
 
 ## Setup
 
-It may work with other versions but Zuffy has been tested with Python 3.11.9 and these library versions:
+Zuffy has been developed and tested with Python 3.11 and these library versions:
 
   Library    | Version  |
 | ---------- | :------: |
@@ -31,14 +32,15 @@ It may work with other versions but Zuffy has been tested with Python 3.11.9 and
 | matplotlib | 3.9.2    |
 | gplearn    | 0.4.2    |
 
-Note that Scikit-learn version 1.6+ modified the API around its "tags" and, until the authors update all their estimators, Zuffy will not run with version 1.6+.  The gplearn library, upon which Zuffy has a dependency, has not been updated since 2023.
+Note that Scikit-learn version 1.6+ modified the API around its "tags" and, until the authors update all their estimators, Zuffy will not run with version 1.6+.  The [gplearn library](https://github.com/trevorstephens/gplearn), upon which Zuffy has a dependency, has not been updated since 2023.
 
-To display the FPT you will need to install graphviz (https://graphviz.org/download/).
+To display the FPT you will need to install [graphviz](https://graphviz.org/download/).
 
 
 ## Zuffy Installation
 Clone the repository:
 > git clone https://github.com/pxom/zuffy.git
+
 Install the required dependencies:
 > pip install -r requirements.txt
 
@@ -50,15 +52,15 @@ Install the required dependencies:
 
 ## Examples
 
-To see examples, look [here](<https://github.com/pxom/zuffy/tree/master/examples>).
+A collection of examples illustrating Zuffy features are available [here](<https://github.com/pxom/zuffy/tree/master/examples>).
 
 ## How to cite Zuffy
-Authors of scientific papers including results generated using Zuffy are asked to cite the following paper.
+Authors of scientific papers including results generated using Zuffy are asked to cite the following paper:
 
 ```xml
 @article{ZUFFY_1, 
     author    = "POM",
-    title     = { {Zuffy}: Open Source inference of FPT using GP },
+    title     = { {Zuffy}: Induction of Fuzzy Pattern Trees through Genetic Programming },
     pages    = { 0--0 },
     volume    = { 1 },
     month     = { Jul },
