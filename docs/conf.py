@@ -14,15 +14,15 @@ import sphinx_rtd_theme
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Zuffy'
-copyright = "2025, POM"
-author = "POM"
+copyright = "2025, PXOM"
+author = "PXOM"
 release = get_version('zuffy')
 version = ".".join(release.split(".")[:3])
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-# start pom additions
+# start pxom additions
 
 extensions = [
     'sphinx_rtd_theme',
@@ -56,7 +56,7 @@ html_theme = 'sphinx_rtd_theme'
 #napoleon_use_param = True
 #napoleon_use_rtype = True
 
-# end pom additions
+# end pxom additions
 
 templates_path = ['_templates']
 exclude_patterns = ["_build", "_templates", "Thumbs.db", ".DS_Store"]

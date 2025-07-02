@@ -397,7 +397,7 @@ def test_graphviz_tree_no_feature_names_in_model(mock_graphviz_source, temp_outp
 
     # No feature_names or feature_names_in_
     mock_model = MockMultiClassModel(estimators=[mock_estimator])
-    mock_model.multi_.estimators_[0].feature_names = None # pom
+    mock_model.multi_.estimators_[0].feature_names = None
 
     output_path = os.path.join(temp_output_dir, "test_tree_no_features")
     graphviz_tree(model=mock_model, output_filename=output_path)

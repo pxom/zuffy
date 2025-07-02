@@ -59,7 +59,7 @@ Authors of scientific papers including results generated using Zuffy are asked t
 
 ```xml
 @article{ZUFFY_1, 
-    author    = "POM",
+    author    = "PXOM",
     title     = { {Zuffy}: Induction of Fuzzy Pattern Trees through Genetic Programming },
     pages    = { 0--0 },
     volume    = { 1 },

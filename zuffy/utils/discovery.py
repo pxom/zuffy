@@ -91,10 +91,10 @@ def all_estimators(type_filter=None):
     ]
     # get rid of abstract base classes
     estimators = [c for c in estimators if not is_abstract(c[1])]
-    print('pom',estimators)
-    pom_filter = ['OneVsOneClassifier','OneVsRestClassifier','GridSearchCV']
-    estimators = [c for c in estimators if c[0] not in pom_filter]
-    print('pom2',estimators)
+    print('my',estimators)
+    my_filter = ['OneVsOneClassifier','OneVsRestClassifier','GridSearchCV']
+    estimators = [c for c in estimators if c[0] not in my_filter]
+    print('my2',estimators)
     if type_filter is not None:
         if not isinstance(type_filter, list):
             type_filter = [type_filter]

@@ -4,7 +4,7 @@ setup(
     name="zuffy",
     version="0.3",
     description="Use GP to induce Fuzzy Pattern Trees",
-    author="POM",
+    author="PXOM",
     packages=find_packages(),
     install_requires=[
      ],
