@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 from zuffy import ZuffyClassifier
 from zuffy.fuzzy_transformer import FuzzyTransformer
@@ -20,8 +20,8 @@ N_SAMPLES = 100
 data = pd.DataFrame({
     'age': np.random.randint(18, 70, size=N_SAMPLES),
     'income': np.random.randint(20000, 100000, size=N_SAMPLES),
-    'gender': np.random.choice(['male', 'female'], size=N_SAMPLES),
-    'region': np.random.choice(['north', 'south', 'east', 'west'], size=N_SAMPLES),
+    'gender': np.random.choice([0, 1], size=N_SAMPLES),
+    'region': np.random.choice([1, 2, 3, 4], size=N_SAMPLES),
     'target': np.random.choice(['A', 'B'], size=N_SAMPLES)
 })
 
@@ -34,15 +34,15 @@ numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
 # Create a preprocessor with ColumnTransformer
 preprocessor = ColumnTransformer(
     transformers=[
-        ('num', numeric_transformer, ['age','income']),
+        ('num', numeric_transformer, ['age','income'])
     ],
-    remainder='passthrough' # Keep other columns if any
+    remainder='passthrough'
 )
 
 # 3. Create the full pipeline including preprocessing, fuzzification, and classifier
 full_pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('fuzzifier', FuzzyTransformer(feature_names=X.columns, non_fuzzy=['gender','region'])),
+    ('fuzzifier', FuzzyTransformer(feature_names=X.columns)),
     ('classifier', ZuffyClassifier(generations=35))
 ])
 
