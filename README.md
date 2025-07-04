@@ -46,9 +46,9 @@ Install the required dependencies:
 
 ## Resources
 
-- `Documentation <https://zuffy.readthedocs.io/en/latest/?badge=latest>`_
-- `Source Code <https://github.com/zuffy-dev/zuffy/>`_
-- `Installation <https://github.com/zuffy-dev/zuffy#installation>`_
+- `Documentation <https://zuffy.readthedocs.io/en/latest/?badge=latest>`
+- `Source Code <https://github.com/zuffy-dev/zuffy/>`
+- `Installation <https://github.com/zuffy-dev/zuffy#installation>`
 
 ## Examples
 
