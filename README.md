@@ -18,7 +18,7 @@ It aims to provide a simple set of tools for the exploration of FPTs that are in
 genetic programming (GP) techniques. The GP functionality is provided by the gplearn library
 and the author is grateful to its creator, Trevor Stephens, for his work on this.
 
-Refer to the documentation for further information.
+Refer to the [documentation](https://zuffy.readthedocs.io/en/latest/?badge=latest) for further information.
 
 ## Setup
 
