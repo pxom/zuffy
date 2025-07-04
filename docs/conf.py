@@ -5,6 +5,8 @@ from importlib.metadata import version as get_version
 
 import sphinx_rtd_theme
 
+import numpy
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
