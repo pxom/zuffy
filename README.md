@@ -38,10 +38,13 @@ To display the FPT you will need to install [graphviz](https://graphviz.org/down
 
 
 ## Zuffy Installation
-Clone the repository:
+Use pip:
+> pip install zuffy
+
+or clone the repository:
 > git clone https://github.com/pxom/zuffy.git
 
-Install the required dependencies:
+and install the required dependencies:
 > pip install -r requirements.txt
 
 ## Resources

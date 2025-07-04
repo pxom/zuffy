@@ -9,17 +9,17 @@ from zuffy import ZuffyClassifier, visuals
 from zuffy.zuffy_fit_iterator import ZuffyFitIterator
 from zuffy.fuzzy_transformer import convert_to_numeric
 
-DATASET_FOLDER = '../../datasets/'
-my_data = pd.read_csv(DATASET_FOLDER + 'adult.data', sep=',', header=None, skiprows=0)
-my_data.columns = ['age','workclass','fnlwgt','education','education-num','marital-status',
-                   'occupation','relationship','race','sex','capital-gain','capital-loss',
-                   'hours-per-week','native-country','income']
+# Use University of California, Irvine (UCI) Adult dataset (https://archive.ics.uci.edu/dataset/2/adult)
+my_data = pd.read_csv('adult.data', sep=',', header=None, skiprows=0)
+my_data.columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status',
+                   'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss',
+                   'hours-per-week', 'native-country', 'income']
 
 target_name = 'income'
 target_class_names, my_data = convert_to_numeric(my_data, target_name)
 
-non_fuzzy =  ['workclass','education','marital-status','occupation',
-              'relationship','race','sex','native-country']
+non_fuzzy =  ['workclass', 'education', 'marital-status', 'occupation',
+              'relationship', 'race', 'sex', 'native-country']
 
 y = my_data[target_name]
 X = my_data.drop(target_name, axis=1)
@@ -38,6 +38,6 @@ visuals.graphviz_tree(
     target_class_names=target_class_names,
     target_feature_name = target_name,
     feature_names=trained_iterator_results.fuzzy_feature_names_,
-    tree_name=f"Adult Dataset (Accuracy: {trained_iterator_results.best_score_:.3f})",
+    tree_name=f"UCI Adult Dataset (Experiment Accuracy: {trained_iterator_results.best_score_:.3f})",
     source_filename=f'example2_fpt_{trained_iterator_results.best_score_*1000:.0f}.dot',
     output_filename=f'example2_fpt_{trained_iterator_results.best_score_*1000:.0f}')
