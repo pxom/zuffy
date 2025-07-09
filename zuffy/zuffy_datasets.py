@@ -3,10 +3,32 @@ import pandas as pd
 from zuffy.fuzzy_transformer import FuzzyTransformer, convert_to_numeric
 DATASET_FOLDER = '../../datasets/'
 
+def prep_data_satellite(): # https://archive.ics.uci.edu/dataset/146/statlog+landsat+satellite
+    dataset_name = 'satellite'
+    my_data = pd.read_csv(DATASET_FOLDER + 'sat.trn', sep=' ', header=None) # , header=0, skiprows=1
+    test_data = pd.read_csv(DATASET_FOLDER + 'sat.tst', sep=' ', header=None) # , header=0, skiprows=1
+    my_data = pd.concat([my_data, test_data], ignore_index=True)
+
+    features = ['Attribute' + str(i) for i in range(my_data.shape[1]-1)]
+    target_name = 'class'
+    my_data.columns=features+[target_name]
+
+
+    target_class_names, my_data = convert_to_numeric(my_data, target_name)
+    target_class_names = list(target_class_names)
+    X = my_data.iloc[:,1:]
+    y = my_data[target_name]
+    non_fuzzy = []
+
+    #features = features.delete(-1) # remove the last one
+    crisp_features = features
+    ds_zc_params = {'parsimony_coefficient':0.00001}
+    ds_it_params = {'n_iter':5}
+    return dataset_name, X, y, non_fuzzy, target_class_names, ds_zc_params, ds_it_params
+
 def prep_data_mushrooms():
     # fetch dataset 
     my_data = pd.read_csv(DATASET_FOLDER + 'mushrooms.csv', sep=',', header=0, skiprows=0)
-    print('mush loaded')
 
     dataset_name   = 'mushroom'
     target_name    = 'class'

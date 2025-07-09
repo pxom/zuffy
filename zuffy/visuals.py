@@ -776,12 +776,12 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
         return imp_feat_dict # Return empty if no important features
 
     # Plot permutation feature importances
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots()
     ax.bar(imp_graph_names, imp_graph_values, color='#ffcc33')
-    ax.set_title("Feature Importances Using Permutation on Full Model")
+    ax.set_title(f"Feature Importances Using {n_repeats} permutations")
     ax.set_ylabel("Mean Accuracy Decrease")
-    ax.set_xlabel("Features")
-    plt.setp(ax.get_xticklabels(), rotation=45, horizontalalignment='right', fontsize='small')
+    ax.set_xlabel("Fuzzy Features")
+    plt.setp(ax.get_xticklabels(), rotation=20, horizontalalignment='right') # , fontsize='small')
     fig.tight_layout()
 
     if output_filename:
@@ -808,7 +808,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
                 title: Optional[str] = "Iteration Performance",
                 output_filename: Optional[str] = None, col_iter_acc: Optional[str] = "#1c9fea",
                 col_best_iter: Optional[str] = "#386938",
-                col_tree_size: Optional[str] = "#755801") -> None:
+                col_tree_size: Optional[str] = "#96a5f7") -> None:
     """
     tbd
     """
@@ -837,7 +837,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
         bars[best_iter].set_color(col_best_iter)
 
     plt.xticks(fontsize=8)  # Set x-axis label font size to 8
-    plt.yticks(fontsize=8)  # Set x-axis label font size to 8
+    plt.yticks(fontsize=8)  # Set y-axis label font size to 8
     ax1.set_xlabel('Iteration')
     ax1.set_ylabel(f'Accuracy (std dev={std_dev_y1:.3f})', color=col_iter_acc)
 
@@ -858,9 +858,10 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     # Adjust the y-axis limits to the min and max of y2
     ax2.set_ylim([min(y2)-1, max(y2)+1])
     ax2.set_yticks(y2)
+    ax2.tick_params(axis='y', labelsize=7)
 
-    ax2.scatter(x, y2, color=col_tree_size, marker='o', edgecolors='black',
-                linewidth=1, s=50, alpha=0.7)
+    ax2.scatter(x, y2, color=col_tree_size, marker='v', edgecolors='black',
+                linewidth=0.7, s=50, alpha=0.8)
     ax2.set_ylabel(f'Tree Size (std dev={std_dev_y2:.3f})', color=col_tree_size)
 
     # Draw lines from top of bar to tree size ball
@@ -871,11 +872,11 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     # Custom legend elements
     custom_legend = [
         Line2D([], [], color=col_iter_acc, linestyle='--', linewidth=1,
-               label=f'Mean of Accuracy: {mean_y1:.2f}'),
-        Line2D([], [], color=col_tree_size, linestyle='None', marker='o', markersize=5,
-               markeredgecolor='black', markeredgewidth=1, alpha=0.7, label='Tree Size'),
+               label=f'Mean of Accuracy: {mean_y1:.3f}'),
+        Line2D([], [], color=col_tree_size, linestyle='None', marker='v', markersize=5,
+               markeredgecolor='black', markeredgewidth=0.7, alpha=0.7, label='Tree Size'),
         Patch(color=col_iter_acc, label="Iteration Accuracy"),
-        Patch(color=col_best_iter, label=f"Best Iteration ({max(y1):.2f})"),
+        Patch(color=col_best_iter, label=f"Best Iteration ({max(y1):.3f})"),
     ]
 
     # Add custom legend
@@ -883,7 +884,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     plt.tight_layout()
 
     if output_filename:
-        plt.savefig(output_filename)
+        plt.savefig(output_filename + f"_{mean_y1*1000:.0f}")
     else:
         plt.show()
     plt.close(fig) # Close the figure to free memory

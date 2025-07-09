@@ -9,7 +9,7 @@ from typing import List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import tree
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.utils._param_validation import Interval, validate_params
 
 @validate_params(
@@ -23,7 +23,8 @@ from sklearn.utils._param_validation import Interval, validate_params
     },
     prefer_skip_nested_validation=True
 )
-def do_model_dt(X: np.ndarray, y: np.ndarray, features: Optional[List[str]], output_filename: str,
+def do_model_dt(X: np.ndarray, y: np.ndarray, features: Optional[List[str]],
+                output_filename: str, source_filename: str = None,
                 max_leaf_nodes: Optional[int] = 10, random_state: Optional[int] = None
                 ) -> DecisionTreeClassifier:
     """
@@ -75,6 +76,9 @@ def do_model_dt(X: np.ndarray, y: np.ndarray, features: Optional[List[str]], out
     # export_text prints to console by default; capturing it for potential use or logging
     tree_text_representation = tree.export_text(est_dt, feature_names=features)
     print('\nDecision Tree Text Representation:\n', tree_text_representation)
+
+    if source_filename is not None:
+        export_graphviz(est_dt, out_file=source_filename, feature_names=features, filled=True)
 
     if output_filename:
         plt.savefig(output_filename)

@@ -308,7 +308,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
                 # Add names for one-hot encoded features (col=category)
                 for cat in self.categorical_values_[col]:
-                    self.feature_names_out_.append(f"{col}={cat}")
+                    self.feature_names_out_.append(f"{col}= {cat}")
             else:
                 # Handle fuzzy (numerical) columns
                 values = X_df[col].dropna().values
@@ -412,7 +412,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
                 # Ensure all categories seen during fit are present in the output,
                 # adding zero columns for any missing categories (e.g., unseen in test set).
-                expected_cols = [f"{col}={cat}" for cat in self.categorical_values_[col]]
+                expected_cols = [f"{col}= {cat}" for cat in self.categorical_values_[col]]
                 for expected_col in expected_cols:
                     if expected_col in one_hot.columns:
                         transformed_features.append(one_hot[expected_col].values.reshape(-1, 1))
