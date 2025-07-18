@@ -52,8 +52,11 @@ def trimf(feature: np.ndarray, abc: Sequence[float]) -> np.ndarray:
     feature = np.asarray(feature, dtype=float)
     y = np.zeros_like(feature, dtype=float)
 
-    # Left side of the triangle (rising slope)
+    # Peak of the triangle (where membership is 1.0)
+    y[feature == b] = 1.0
+
     if a != b:
+        # Left side of the triangle (rising slope)
         mask = (a < feature) & (feature < b)
         y[mask] = (feature[mask] - a) / (b - a)
 
@@ -61,9 +64,6 @@ def trimf(feature: np.ndarray, abc: Sequence[float]) -> np.ndarray:
     if b != c:
         mask = (b < feature) & (feature < c)
         y[mask] = (c - feature[mask]) / (c - b)
-
-    # Peak of the triangle (where membership is 1.0)
-    y[feature == b] = 1.0
 
     return y
 
@@ -90,6 +90,9 @@ def convert_to_numeric(df: pd.DataFrame, target: str) ->Tuple[List[str], pd.Data
     df : pandas.DataFrame
         The DataFrame with the specified target column converted to integer labels.
     """
+    if target not in df.columns:
+        raise ValueError(f"Target column '{target}' not found in the DataFrame.")
+    
     le = LabelEncoder()
     # Apply LabelEncoder to the target column and store original classes
     df[target] = le.fit_transform(df[target])
@@ -320,18 +323,28 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                     # If column is empty, set default bounds (e.g., for consistency)
                     a, b, c = 0.0, 0.0, 0.0
                 else:
-                    a = float(np.min(values))
-                    c = float(np.max(values))
-                    b = a + (c - a) / 2.0 # Mid-point of the range
+                    domain_min = float(np.min(values))
+                    domain_max = float(np.max(values))
+                    range_span = domain_max - domain_min
+
+                    a = domain_min + range_span * 0.25
+                    b = domain_min + range_span * 0.50
+                    c = domain_min + range_span * 0.75
                 self.fuzzy_bounds_[col] = (a, b, c)
 
                 # Add names for the three fuzzy features (low, med, high)
+                #if self.show_fuzzy_range:
+                #    self.feature_names_out_.extend([
+                #        f"{self.tags[0]} {col}| ({a:.2f} to {b:.2f})",
+                #        f"{self.tags[1]} {col}| ({a:.2f} to {b:.2f} to {c:.2f})",
+                #        f"{self.tags[2]} {col}| ({b:.2f} to {c:.2f})"
+                #    ])
                 if self.show_fuzzy_range:
                     self.feature_names_out_.extend([
-                        f"{self.tags[0]} {col}| ({a:.2f} to {b:.2f})",
-                        f"{self.tags[1]} {col}| ({a:.2f} to {b:.2f} to {c:.2f})",
-                        f"{self.tags[2]} {col}| ({b:.2f} to {c:.2f})"
-                    ])
+                        f"{self.tags[0]} {col}| ({domain_min:.2f} to {a:.2f})",
+                        f"{self.tags[1]} {col}| ({a:.2f} to {c:.2f})",
+                        f"{self.tags[2]} {col}| ({c:.2f} to {domain_max:.2f})"
+                    ])                
                 else:
                     self.feature_names_out_.extend([
                         f"{self.tags[0]} {col}",

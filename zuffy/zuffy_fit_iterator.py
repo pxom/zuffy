@@ -5,6 +5,7 @@ Pattern Trees to find an optimal model.
 
 """
 
+import copy
 import numbers # for scikit learn Interval
 import time
 from typing import Any, Dict, List, Tuple, Union
@@ -219,7 +220,7 @@ class ZuffyFitIterator(BaseEstimator):
                 random_state=current_random_state,
             )
             sum_scores += score
-            self._verbose_out(f"Class scores for iteration {i}: {class_scores}")
+            #self._verbose_out(f"Class scores for iteration {i}: {class_scores}")
 
             # Determine the actual Zuffy estimator to calculate its tree size.
             # This handles both direct Zuffy models and GridSearchCV results.
@@ -249,7 +250,7 @@ class ZuffyFitIterator(BaseEstimator):
             if (score > best_score_overall) or \
                ((score == best_score_overall) and (tree_size < smallest_tree_size_overall)):
                 best_iter_idx = i
-                self.best_estimator_ = current_estimator
+                self.best_estimator_ = copy.copy(zuffy_estimator)
                 self.fuzz_transformer_ = fuzz_transformer
                 best_score_overall = score
                 smallest_tree_size_overall = tree_size
@@ -352,8 +353,8 @@ class ZuffyFitIterator(BaseEstimator):
             else:
                 self._verbose_out(f"Class {cls} not present in this test split.")
 
-        avg_score = round(np.mean(list(class_scores.values())), 5) if class_scores else 0.0
-        self._verbose_out(f"Average Class score: {avg_score}")
+        #avg_score = round(np.mean(list(class_scores.values())), 5) if class_scores else 0.0
+        #self._verbose_out(f"Average Class score: {avg_score}")
 
         return score, fitted_model, class_scores, fuzz_transformer
 

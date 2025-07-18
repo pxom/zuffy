@@ -543,7 +543,7 @@ def graphviz_tree(
     },
     prefer_skip_nested_validation=True
 )
-def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
+def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: Optional[int] = 0,
                    output_filename: Optional[str] = None) -> None:
     """
     Plots the evolution metrics (tree length, fitness, generation duration) for
@@ -605,6 +605,13 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
     num_estimators = len(model.multi_.estimators_)
     # Create a figure with dynamic height based on the number of estimators.
     fig = plt.figure(figsize=(11, 2.5 * num_estimators))
+    fig.suptitle(f'Evolution Performance', fontsize=14)
+
+    xlabel = 'Generation'
+    if skip_first_n > 0:
+        xlabel += f' (omitting first {skip_first_n} generations)'
+
+    fig.supxlabel(xlabel)
 
     num_cols = 3 # Three subplots per row (Length, Fitness, Duration).
 
@@ -623,11 +630,11 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
         ax1 = fig.add_subplot(num_estimators, num_cols, idx * num_cols + 1)
         ax1.set_title(f'Class: {target_class_names[idx]}\nTree Length '
                       f'(Final Avg: {run_details["average_length"][-1]:.2f})')
-        ax1.plot(run_details['generation'], run_details['average_length'],
+        ax1.plot(run_details['generation'][skip_first_n:], run_details['average_length'][skip_first_n:],
                  color='tab:blue', label='Average')
-        ax1.plot(run_details['generation'], run_details['best_length'],
+        ax1.plot(run_details['generation'][skip_first_n:], run_details['best_length'][skip_first_n:],
                  color='tab:orange', label='Best')
-        ax1.set_xlabel('Generation')
+        #ax1.set_xlabel('Generation')
         ax1.set_ylabel('Length')
         ax1.legend()
 
@@ -635,11 +642,11 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
         ax2 = fig.add_subplot(num_estimators, num_cols, idx * num_cols + 2)
         ax2.set_title(f'Fitness (smaller is better)\n'
                       f'Final Best: {run_details["best_fitness"][-1]:.3f}')
-        ax2.plot(run_details['generation'], run_details['average_fitness'],
+        ax2.plot(run_details['generation'][skip_first_n:], run_details['average_fitness'][skip_first_n:],
                  color='tab:purple', label='Average')
-        ax2.plot(run_details['generation'], run_details['best_fitness'],
+        ax2.plot(run_details['generation'][skip_first_n:], run_details['best_fitness'][skip_first_n:],
                  color='tab:green', label='Best')
-        ax2.set_xlabel('Generation')
+        #ax2.set_xlabel('Generation')
         ax2.set_ylabel('Fitness')
         ax2.legend()
 
@@ -651,8 +658,8 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
         else:
             avg_gen_time = 0.0 # Default if no timing data
         ax3.set_title(f'Generation Duration\nAverage: {avg_gen_time:.4f}s')
-        ax3.plot(run_details['generation'], run_details['generation_time'], color='#ffcc33')
-        ax3.set_xlabel('Generation')
+        ax3.plot(run_details['generation'][skip_first_n:], run_details['generation_time'][skip_first_n:], color='#ffcc33')
+        #ax3.set_xlabel('Generation')
         ax3.set_ylabel('Duration (s)')
 
     plt.tight_layout() # Adjust subplot parameters for a tight layout.
@@ -778,10 +785,11 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
     # Plot permutation feature importances
     fig, ax = plt.subplots()
     ax.bar(imp_graph_names, imp_graph_values, color='#ffcc33')
-    ax.set_title(f"Feature Importances Using {n_repeats} permutations")
+    ax.set_title(f"Feature Importance (using {n_repeats} permutations)", fontsize=14)
     ax.set_ylabel("Mean Accuracy Decrease")
     ax.set_xlabel("Fuzzy Features")
-    plt.setp(ax.get_xticklabels(), rotation=20, horizontalalignment='right') # , fontsize='small')
+    plt.xticks(fontsize=8)
+    plt.setp(ax.get_xticklabels(), rotation=20, horizontalalignment='right')
     fig.tight_layout()
 
     if output_filename:
@@ -808,7 +816,8 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
                 title: Optional[str] = "Iteration Performance",
                 output_filename: Optional[str] = None, col_iter_acc: Optional[str] = "#1c9fea",
                 col_best_iter: Optional[str] = "#386938",
-                col_tree_size: Optional[str] = "#96a5f7") -> None:
+                col_tree_size: Optional[str] = "#680818",
+                sorted: Optional[bool] = False) -> None:
     """
     tbd
     """
@@ -829,17 +838,28 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
 
     fig, ax1 = plt.subplots()
 
+    if sorted:
+        y1_np = np.array(y1)
+        y2_np = np.array(y2)
+        # Sort by descending accuracy and then ascending tree size
+        sorted_indices = np.lexsort((y2_np, -y1_np))
+        x = x[sorted_indices].astype(str)
+        y1 = y1_np[sorted_indices]
+        y2 = y2_np[sorted_indices]
+
     # Plotting the first value as a bar chart
     bars = ax1.bar(x, y1, color=col_iter_acc)
 
     # Change the color of the score_best_iter bar
-    if best_iter is not None:
-        bars[best_iter].set_color(col_best_iter)
+    #if best_iter is not None:
+    #    bars[best_iter].set_color(col_best_iter)
+
+    bars[0].set_color(col_best_iter)
 
     plt.xticks(fontsize=8)  # Set x-axis label font size to 8
     plt.yticks(fontsize=8)  # Set y-axis label font size to 8
     ax1.set_xlabel('Iteration')
-    ax1.set_ylabel(f'Accuracy (std dev={std_dev_y1:.3f})', color=col_iter_acc)
+    ax1.set_ylabel(f'Accuracy (std dev={std_dev_y1:.3f})', color='black')
 
     # Adjust the y-axis limits to the min and max of y1
     ax1.set_ylim([min(y1)-0.03, max(y1)+0.03])
@@ -849,7 +869,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
 
     # Add horizontal line for mean of y1 values
     mean_y1 = np.mean(y1)
-    ax1.axhline(mean_y1, color=col_iter_acc, linestyle='--', linewidth=1,
+    ax1.axhline(mean_y1, color='black', linestyle='--', linewidth=1,
                 label=f'Mean of Accuracy: {mean_y1:.2f}')
 
     # Creating a secondary y-axis for the second value
@@ -862,7 +882,7 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
 
     ax2.scatter(x, y2, color=col_tree_size, marker='v', edgecolors='black',
                 linewidth=0.7, s=50, alpha=0.8)
-    ax2.set_ylabel(f'Tree Size (std dev={std_dev_y2:.3f})', color=col_tree_size)
+    ax2.set_ylabel(f'Tree Size (std dev={std_dev_y2:.3f})', color='black')
 
     # Draw lines from top of bar to tree size ball
     for xb, h, yb in zip(x, y1, y2):
@@ -871,16 +891,17 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     plt.title(title)
     # Custom legend elements
     custom_legend = [
-        Line2D([], [], color=col_iter_acc, linestyle='--', linewidth=1,
+        Patch(color=col_iter_acc, label="Iteration Accuracy"),
+        Patch(color=col_best_iter, label=f"Best Iteration ({max(y1):.3f})"),
+        Line2D([], [], color='black', linestyle='--', linewidth=1,
                label=f'Mean of Accuracy: {mean_y1:.3f}'),
         Line2D([], [], color=col_tree_size, linestyle='None', marker='v', markersize=5,
                markeredgecolor='black', markeredgewidth=0.7, alpha=0.7, label='Tree Size'),
-        Patch(color=col_iter_acc, label="Iteration Accuracy"),
-        Patch(color=col_best_iter, label=f"Best Iteration ({max(y1):.3f})"),
     ]
 
     # Add custom legend
-    ax1.legend(loc='lower left', handles=custom_legend, fontsize=7, bbox_to_anchor=(1, 1))
+    ax1.legend(loc='upper center', handles=custom_legend, fontsize=7,
+               ncol=4, bbox_to_anchor=(0.5, -0.1))
     plt.tight_layout()
 
     if output_filename:
@@ -888,3 +909,5 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     else:
         plt.show()
     plt.close(fig) # Close the figure to free memory
+
+    return mean_y1, std_dev_y1
