@@ -250,9 +250,6 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
         If `feature_names` is provided but its length is less than `program.n_features`,
         indicating insufficient names for all features.
     """
-    if feature_names and len(feature_names) < program.n_features:
-        raise ValueError(f'There are insufficient feature_names ({len(feature_names)}) '
-                         f'supplied for this program (which expects {program._n_features}).')
 
     # Initialise the color assigners, if not provided
     operator_color_assigner = operator_col_fn if operator_col_fn is not None \
@@ -539,6 +536,7 @@ def graphviz_tree(
 @validate_params(
     {
         "target_class_names": [None, list],
+        "skip_first_n": [None, int],
         "output_filename": [None, str]
     },
     prefer_skip_nested_validation=True
@@ -664,6 +662,144 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
 
     plt.tight_layout() # Adjust subplot parameters for a tight layout.
 
+    if output_filename:
+        plt.savefig(output_filename)
+    else:
+        plt.show()
+    plt.close(fig) # Close the figure to free memory.
+
+@validate_params(
+    {
+        "target_class_names": [None, list],
+        "skip_first_n": [None, int],
+        "output_filename": [None, str]
+    },
+    prefer_skip_nested_validation=True
+)
+def plot_evolution_consolidated_charts(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: Optional[int] = 0,
+                                      output_filename: Optional[str] = None) -> None:
+    """
+    Plots the evolution metrics (tree length, fitness, generation duration) for
+    all sub-estimators in a Fuzzy Pattern Tree model over generations,
+    consolidating each metric type onto a single chart for comparative analysis.
+
+    Parameters
+    ----------
+    model : object
+        The genetic programming model object (e.g., from `gplearn`'s
+        `SymbolicClassifier` or `SymbolicRegressor`). Expected to have
+        `multi_.estimators_` and `classes_` attributes.
+        Each estimator within `multi_.estimators_` must also have a
+        `run_details_` attribute, containing 'generation', 'average_length',
+        'best_length', 'average_fitness', 'best_fitness', and 'generation_time' lists.
+    target_class_names : list of str, optional
+        A list of string names for each target class. If `None`, `model.classes_`
+        will be used. Defaults to `None`.
+    skip_first_n : int, optional
+        Number of initial generations to skip from the plot. Defaults to 0.
+        Useful for focusing on later stages of evolution where changes might be more subtle.
+    output_filename : str, optional
+        The full path and filename (e.g., 'evolution_plot.png') to save the plot.
+        If `None`, the plot will be displayed interactively. Defaults to `None`.
+
+    Returns
+    -------
+    None
+        The function displays or saves a Matplotlib plot.
+
+    Raises
+    ------
+    AttributeError
+        If `model.multi_` or `model.multi_.estimators_` attributes are missing,
+        or if any individual estimator lacks the `run_details_` attribute.
+    ValueError
+        If `target_class_names` is provided but its length is insufficient
+        to represent all model classes.
+    """
+    if not hasattr(model, 'multi_') or not hasattr(model.multi_, 'estimators_'):
+        raise AttributeError(
+            "The model must have a 'multi_' attribute, which in turn must have "
+            "an 'estimators_' attribute (e.g., `model.multi_.estimators_`)."
+        )
+
+    if target_class_names is None:
+        if hasattr(model, 'classes_'):
+            target_class_names = list(model.classes_)
+        else:
+            # Fallback if model.classes_ is not available
+            target_class_names = [f'Class {i}' for i in range(len(model.multi_.estimators_))]
+
+    if len(target_class_names) < len(model.multi_.estimators_):
+        raise ValueError(f'Insufficient `target_class_names` ({len(target_class_names)}) supplied'
+                         f' to represent each of the {len(model.multi_.estimators_)} classes.')
+    target_class_names = sanitise_names(target_class_names) # Sanitise names for plot titles and legends.
+
+    num_estimators = len(model.multi_.estimators_)
+    all_run_details = []
+
+    for idx, estimator in enumerate(model.multi_.estimators_):
+        # Ensure `run_details_` is available on each sub-estimator.
+        if not hasattr(estimator, 'run_details_'):
+            raise AttributeError(
+                f"Estimator for class '{target_class_names[idx]}' is missing "
+                "'run_details_' attribute. Ensure the gplearn model was fitted with "
+                "`verbose=1` or `low_memory=False` to store run details."
+            )
+        all_run_details.append(estimator.run_details_)
+
+    # --- Plotting Setup ---
+    # Create a figure with 3 subplots, arranged vertically, sharing the x-axis (generations).
+    fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True) # Adjusted figsize for 3 plots
+    fig.suptitle('Evolution Performance Across All Classes', fontsize=16, y=0.95) # Global title for the figure
+
+    # Common x-axis label, adjusted for skipped generations.
+    xlabel = 'Generation'
+    if skip_first_n > 0:
+        xlabel += f' (omitting first {skip_first_n} generations)'
+
+    # --- Plotting Consolidated Metrics ---
+
+    # Plot 1: Tree Length Evolution (Average and Best) for all classes
+    ax0 = axes[0]
+    ax0.set_title('Tree Length Evolution (Average and Best)')
+    ax0.set_ylabel('Length')
+    for i, run_details in enumerate(all_run_details):
+        ax0.plot(run_details['generation'][skip_first_n:], run_details['average_length'][skip_first_n:],
+                 label=f'Class: {target_class_names[i]} (Avg)', linestyle='-')
+        ax0.plot(run_details['generation'][skip_first_n:], run_details['best_length'][skip_first_n:],
+                 label=f'Class:{target_class_names[i]} (Best)', linestyle='--')
+    ax0.legend(loc='best', fontsize='small', ncol=2) # Use 2 columns for legend if many classes
+    ax0.grid(True, linestyle='--', alpha=0.6) # Add a grid for readability
+
+    # Plot 2: Fitness Evolution (Average and Best, smaller is better) for all classes
+    ax1 = axes[1]
+    ax1.set_title('Fitness Evolution (Average and Best, smaller is better)')
+    ax1.set_ylabel('Fitness')
+    for i, run_details in enumerate(all_run_details):
+        ax1.plot(run_details['generation'][skip_first_n:], run_details['average_fitness'][skip_first_n:],
+                 label=f'Class: {target_class_names[i]} (Avg)', linestyle='-')
+        ax1.plot(run_details['generation'][skip_first_n:], run_details['best_fitness'][skip_first_n:],
+                 label=f'Class: {target_class_names[i]} (Best)', linestyle='--')
+    ax1.legend(loc='best', fontsize='small', ncol=2)
+    ax1.grid(True, linestyle='--', alpha=0.6)
+
+    # Plot 3: Generation Duration for all classes
+    ax2 = axes[2]
+    ax2.set_title('Generation Duration')
+    ax2.set_ylabel('Duration (seconds)')
+    for i, run_details in enumerate(all_run_details):
+        ax2.plot(run_details['generation'][skip_first_n:], run_details['generation_time'][skip_first_n:],
+                 label=f'Class: {target_class_names[i]}')
+    ax2.legend(loc='best', fontsize='small')
+    ax2.grid(True, linestyle='--', alpha=0.6)
+
+    # Set common xlabel for the bottom-most subplot
+    axes[-1].set_xlabel(xlabel)
+
+    # Adjust subplot parameters for a tight layout, making room for the suptitle.
+    plt.tight_layout(rect=[0, 0.03, 1, 0.92])
+
+    # --- Output Handling ---
     if output_filename:
         plt.savefig(output_filename)
     else:
