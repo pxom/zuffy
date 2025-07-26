@@ -16,7 +16,7 @@ def prep_data_satellite(): # https://archive.ics.uci.edu/dataset/146/statlog+lan
 
     target_class_names, my_data = convert_to_numeric(my_data, target_name)
     target_class_names = list(target_class_names)
-    X = my_data.iloc[:,1:]
+    X = my_data.iloc[:,:-1]
     y = my_data[target_name]
     non_fuzzy = []
 
