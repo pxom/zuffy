@@ -120,7 +120,7 @@ class ZuffyFitIterator(BaseEstimator):
         show_fuzzy_range: bool = True,
         n_iter: int = 5,
         test_size: float = 0.2,
-        random_state: Union[int, None] = None
+        random_state: Union[int, np.random.RandomState, None] = None
         ):
 
         self.model = model
@@ -192,6 +192,7 @@ class ZuffyFitIterator(BaseEstimator):
         if feature_names is None:
             # generate feature_names
             feature_names = [f'X{i}' for i in range(X.shape[1])]
+        self.n_features_in_ = X.shape[1]
 
         num_X = X.drop(self.non_fuzzy,axis=1)
         if num_X.shape[1] > 0:
@@ -250,8 +251,8 @@ class ZuffyFitIterator(BaseEstimator):
             if (score > best_score_overall) or \
                ((score == best_score_overall) and (tree_size < smallest_tree_size_overall)):
                 best_iter_idx = i
-                self.best_estimator_ = copy.copy(zuffy_estimator)
-                self.fuzz_transformer_ = fuzz_transformer
+                self.best_estimator_ = copy.deepcopy(zuffy_estimator)
+                self.fuzz_transformer_ = copy.deepcopy(fuzz_transformer)
                 best_score_overall = score
                 smallest_tree_size_overall = tree_size
                 self._verbose_out(f"New best estimator found: Iteration {i} with score "

@@ -18,6 +18,8 @@ class ColorAssigner: # pylint: disable=too-few-public-methods
     to each new `object_name` it encounters. If an `object_name` has been seen
     before, it returns the previously assigned color. If the color pool is exhausted,
     it cycles back to the beginning of the pool.
+    The assignment is consistent: the same `object_name` will always receive
+    the same color once assigned.
 
     Subclasses are expected to provide their specific default color pools.
     """
@@ -36,6 +38,15 @@ class ColorAssigner: # pylint: disable=too-few-public-methods
         ------
         ValueError
             If the `color_pool` is empty.
+
+        Attributes
+        ----------
+        colors : list of str
+            The actual list of hexadecimal color codes used for assignment.
+        assigned_colors : dict
+            A dictionary mapping `object_name` (str) to the index (int) of its
+            assigned color within the `colors` list. This ensures consistent
+            color assignment for previously seen objects.            
         """
         if not color_pool:
             raise ValueError("`color_pool` cannot be empty.")

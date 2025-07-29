@@ -5,7 +5,7 @@ This module provides utilities to:
 - Generate Graphviz DOT scripts for FPT models.
 - Plot the evolutionary metrics of the GP sub-estimators.
 - Calculate and display permutation feature importances.
-- Plot the performance of the experiments (iterations)
+- Plot the performance of iterative experiments.
 
 """
 
@@ -192,7 +192,6 @@ def sanitise_names(names: Optional[List[Any]]) -> Optional[List[str]]:
 
 @validate_params(
     {
-        #"program": [HasMethods(["_program", "n_features"])], # More specific methods check
         "feature_names": [None, list],
         "start": [Interval(numbers.Integral, 0, None, closed='left')],
         "operator_col_fn": [None, HasMethods(["get_color"])],
@@ -263,8 +262,8 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
 
     dot_output = ''
 
-    for i, node in enumerate(program.program):
-        current_node_id = i + start
+    for node_idx, node in enumerate(program.program):
+        current_node_id = node_idx + start
 
         if isinstance(node, _Function):
             # This is an operator node containing a Function
@@ -278,7 +277,7 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
                                        feature_color_assigner, imp_feat)
 
             # Handle the degenerative case where the program is a single node (a terminal)
-            if i == 0 and not terminals_stack:
+            if node_idx == 0 and not terminals_stack:
                 return dot_output # No edges to draw for a single-node program
 
             # Append the current node as a child to the last operator on the stack.
@@ -304,7 +303,7 @@ def graph_tree_class(program, feature_names: Optional[List[str]] = None, start: 
                     terminals_stack[-1][0] -= 1 # Decrement arity of its parent.
 
     # This part should ideally be unreachable if the program structure is a valid tree.
-    # It might indicate an incomplete tree or an issue in the traversal logic.
+    # It might indicate an incomplete tree.
     return dot_output
 
 @validate_params(
@@ -411,7 +410,8 @@ def graphviz_tree(
     ------
     AttributeError
         If the `model` object does not have the expected `multi_` or
-        `multi_.estimators_` attributes.
+        `multi_.estimators_` attributes, or if an individual estimator
+        lacks the `_program` attribute.
     ValueError
         If `target_class_names` is provided but its length is insufficient to
         represent all the sub-estimators (classes) in the model.
@@ -478,7 +478,7 @@ def graphviz_tree(
         # Each estimator in `multi_.estimators_` is expected to be a gplearn _Program
         # or an object wrapping it, providing a `_program` attribute.
         if not hasattr(estimator, "_program"):
-            raise ValueError(
+            raise AttributeError(
                 "Each estimator in `model.multi_.estimators_` is expected to have "
                 "a `_program` attribute (e.g., the gplearn _Program object) "
                 "to build its tree visualization, but it is missing for estimator "
@@ -505,7 +505,8 @@ def graphviz_tree(
 
         # Sanitise class names for display in the HTML label of the WTA node.
         sanitised_target_class = html.escape(target_class_names[idx])
-        wta_ports_html.append(f"<td port=\"port_{idx}\">{html.escape(target_feature_name)}="
+        sanitised_target_feature_name = html.escape(target_feature_name)
+        wta_ports_html.append(f"<td port=\"port_{idx}\">{sanitised_target_feature_name}="
                               f"{sanitised_target_class}{fitness_info}</td>")
 
     # Define the central root node (WTA - Winner Takes All).
@@ -536,12 +537,12 @@ def graphviz_tree(
 @validate_params(
     {
         "target_class_names": [None, list],
-        "skip_first_n": [None, int],
+        "skip_first_n": [Interval(numbers.Integral, 0, None, closed='left')],
         "output_filename": [None, str]
     },
     prefer_skip_nested_validation=True
 )
-def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: Optional[int] = 0,
+def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: int = 0,
                    output_filename: Optional[str] = None) -> None:
     """
     Plots the evolution metrics (tree length, fitness, generation duration) for
@@ -563,6 +564,9 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
     target_class_names : list of str, optional
         A list of string names for each target class. If `None`, `model.classes_`
         will be used. Defaults to `None`.
+    skip_first_n : int, default=0
+        Number of initial generations to skip from the plot. Defaults to 0.
+        Useful for focusing on later stages of evolution where changes might be more subtle.        
     output_filename : str, optional
         The full path and filename (e.g., 'evolution_plot.png') to save the plot.
         If `None`, the plot will be displayed interactively. Defaults to `None`.
@@ -676,12 +680,12 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
     },
     prefer_skip_nested_validation=True
 )
-def plot_evolution_consolidated_charts(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: Optional[int] = 0,
+def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: int = 0,
                                       output_filename: Optional[str] = None) -> None:
     """
     Plots the evolution metrics (tree length, fitness, generation duration) for
     all sub-estimators in a Fuzzy Pattern Tree model over generations,
-    consolidating each metric type onto a single chart for comparative analysis.
+    consolidating each class performance onto a single chart for comparative analysis.
 
     Parameters
     ----------
@@ -695,7 +699,7 @@ def plot_evolution_consolidated_charts(model: Any, target_class_names: Optional[
     target_class_names : list of str, optional
         A list of string names for each target class. If `None`, `model.classes_`
         will be used. Defaults to `None`.
-    skip_first_n : int, optional
+    skip_first_n : int, default=0
         Number of initial generations to skip from the plot. Defaults to 0.
         Useful for focusing on later stages of evolution where changes might be more subtle.
     output_filename : str, optional
@@ -785,7 +789,7 @@ def plot_evolution_consolidated_charts(model: Any, target_class_names: Optional[
 
     # Plot 3: Generation Duration for all classes
     ax2 = axes[2]
-    ax2.set_title('Generation Duration')
+    ax2.set_title('Generation Time')
     ax2.set_ylabel('Duration (seconds)')
     for i, run_details in enumerate(all_run_details):
         ax2.plot(run_details['generation'][skip_first_n:], run_details['generation_time'][skip_first_n:],
@@ -797,7 +801,7 @@ def plot_evolution_consolidated_charts(model: Any, target_class_names: Optional[
     axes[-1].set_xlabel(xlabel)
 
     # Adjust subplot parameters for a tight layout, making room for the suptitle.
-    plt.tight_layout(rect=[0, 0.03, 1, 0.92])
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     # --- Output Handling ---
     if output_filename:
@@ -813,7 +817,7 @@ def plot_evolution_consolidated_charts(model: Any, target_class_names: Optional[
         "y_test": ["array-like"],
         "features": [None, list],
         "output_filename": [None, str],
-        "n_jobs": [None, numbers.Integral],
+        "n_jobs": [None, numbers.Integral, Interval(numbers.Integral, -1, None, closed='left')],
         "n_repeats": [numbers.Integral, Interval(numbers.Integral, 1, None, closed='left')],
     },
     prefer_skip_nested_validation=True
@@ -833,9 +837,9 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
     Parameters
     ----------
     reg : object
-        The regressor model object. It must be a fitted scikit-learn compatible
-        regressor (or classifier that has a `score` method for the relevant metric)
-        with `fit`, `predict`, and `score` methods.
+        The regressor or classifier model object. It must be a fitted scikit-learn
+        compatible estimator with a `predict` method and a `score` method.
+        The `score` method is used by `permutation_importance` to evaluate performance.
     X_test : numpy.ndarray
         The test input data, used to evaluate the model's performance during permutation.
     y_test : numpy.ndarray
@@ -848,7 +852,7 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
     n_jobs : int, optional
         Number of jobs to run in parallel for `permutation_importance`.
         `-1` means using all available processors. `None` (default) means `1` job.
-    n_repeats : int, optional
+    n_repeats : int, default=20
         The number of times to permute a feature. Higher values increase reliability
         but also computation time. Defaults to 20.
     output_filename : str, optional
@@ -910,7 +914,7 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
             imp_feat_dict[original_feature_name] = [mean_importance, std_importance, rank]
             imp_graph_names.append(display_feature_name)
             imp_graph_values.append(mean_importance)
-            print(f"Rank {rank}: {display_feature_name:<40} {mean_importance:.3f} "
+            print(f"Rank {rank:<3}: {display_feature_name:<40} {mean_importance:.3f} "
                   f"+/- {std_importance:.3f}")
             rank += 1
 
@@ -939,7 +943,7 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
 @validate_params(
     {
         "iter_perf": ["array-like"],
-        "best_iter": [None, int],
+        "best_iter": [None, numbers.Integral],
         "title": [None, str],
         "output_filename": [None, str],
         "col_iter_acc": [None, str],
@@ -952,10 +956,49 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
                 title: Optional[str] = "Iteration Performance",
                 output_filename: Optional[str] = None, col_iter_acc: Optional[str] = "#1c9fea",
                 col_best_iter: Optional[str] = "#386938",
-                col_tree_size: Optional[str] = "#680818",
-                sorted: Optional[bool] = False) -> None:
+                col_tree_size: Optional[str] = "#680818") -> None:
     """
-    tbd
+    Plots the performance of experiments (iterations), typically showing accuracy
+    and tree size over iterations.
+
+    This function is designed to visualize the progress of an iterative process,
+    such as a hyperparameter search or sequential model building. It displays
+    a primary metric (e.g., accuracy) and a secondary metric (e.g., tree size)
+    on a twin Y-axis for context. It can also highlight the best performing iteration.
+    The function displays or saves a Matplotlib plot.
+
+    Parameters
+    ----------
+    iter_perf : numpy.ndarray
+        A 2D NumPy array or array-like object where each row represents an iteration
+        and columns contain performance metrics. It's expected to have columns
+        for iteration accuracy and tree size, as specified by `col_iter_acc`
+        and `col_tree_size` respectively.
+    best_iter : int, optional
+        The index of the best iteration to highlight on the plot. If `None`,
+        no specific iteration is highlighted. Defaults to `None`.
+    title : str, optional
+        The title for the plot. If `None`, a default title 'Iteration Performance'
+        will be used. Defaults to `None`.
+    output_filename : str, optional
+        The full path and filename (e.g., 'iteration_performance.png') to save the plot.
+        If `None`, the plot will be displayed interactively. Defaults to `None`.
+    col_iter_acc : str, optional
+        The colour for the primary Y-axis, representing the iteration performance metric
+        (e.g., 'Accuracy').
+    col_best_iter : str, optional
+        The colour for the best iteration marker.
+    col_tree_size : str, optional
+        The colour for the secondary Y-axis, representing the tree size or complexity.
+
+    Returns
+    -------
+    mean_y1 : float
+        The mean value of the accuracies.
+    std_dev_y1 : float
+        The standard deviation of the accuracies.
+
+
     """
 
     # decode iteration_performance_list.append([score, tree_size, class_scores])
@@ -969,27 +1012,20 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
     std_dev_y1 = np.std(y1)
     std_dev_y2 = np.std(y2)
 
-    #x = np.arange(1, it_params['n_iter']+1)
     x = np.arange(1, len(iter_perf)+1)
 
     fig, ax1 = plt.subplots()
 
-    if sorted:
-        y1_np = np.array(y1)
-        y2_np = np.array(y2)
-        # Sort by descending accuracy and then ascending tree size
-        sorted_indices = np.lexsort((y2_np, -y1_np))
-        x = x[sorted_indices].astype(str)
-        y1 = y1_np[sorted_indices]
-        y2 = y2_np[sorted_indices]
+    y1_np = np.array(y1)
+    y2_np = np.array(y2)
+    # Sort by descending accuracy and then ascending tree size
+    sorted_indices = np.lexsort((y2_np, -y1_np))
+    x = x[sorted_indices].astype(str)
+    y1 = y1_np[sorted_indices]
+    y2 = y2_np[sorted_indices]
 
     # Plotting the first value as a bar chart
     bars = ax1.bar(x, y1, color=col_iter_acc)
-
-    # Change the color of the score_best_iter bar
-    #if best_iter is not None:
-    #    bars[best_iter].set_color(col_best_iter)
-
     bars[0].set_color(col_best_iter)
 
     plt.xticks(fontsize=8)  # Set x-axis label font size to 8

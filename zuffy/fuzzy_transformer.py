@@ -1,6 +1,9 @@
 """
-This module provides functions for Fuzzy Pattern Tree operations and a
-scikit-learn compatible `FuzzyTransformer`.
+This module provides a scikit-learn compatible `FuzzyTransformer`
+for converting numerical features into fuzzy membership values and
+handling categorical features via one-hot encoding.
+It also includes helper functions for fuzzy logic operations.
+
 """
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
@@ -24,7 +27,8 @@ def trimf(feature: np.ndarray, abc: Sequence[float]) -> np.ndarray:
     Parameters
     ----------
     feature : numpy.ndarray
-        Crisp input values (e.g., a feature vector). Must be a 1D array.
+        Crisp input values (e.g., a feature vector). Must be a 1D array or
+        convertible to a 1D array.
 
     abc : Sequence[float], length 3
         Parameters defining the triangular function: `[a, b, c]`.
@@ -89,6 +93,11 @@ def convert_to_numeric(df: pd.DataFrame, target: str) ->Tuple[List[str], pd.Data
         column, in the order they were encoded.
     df : pandas.DataFrame
         The DataFrame with the specified target column converted to integer labels.
+
+    Raises
+    ------
+    ValueError
+        If the `target` column is not found in the DataFrame.        
     """
     if target not in df.columns:
         raise ValueError(f"Target column '{target}' not found in the DataFrame.")
@@ -127,14 +136,15 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         A list of three strings to be used as suffixes for the generated fuzzy
         feature names (e.g., 'low_feature_name', 'med_feature_name').
         The order corresponds to the 'low', 'medium', and 'high' membership
-        functions, respectively.
+        functions, respectively.  Must contain exactly three strings.
 
     feature_names : list of str, default=None
-        Optional list of input feature names. If `X` passed to `fit` is a
-        NumPy array, these names will be used to assign column names for
-        internal DataFrame processing and output feature naming. If `X` is a
-        Pandas DataFrame, its column names will be used and this parameter
-        will be ignored.
+        Optional list of input feature names.
+        - If `X` passed to `fit` is a Pandas DataFrame, its column names will be
+          used, and this parameter will be ignored.
+        - If `X` is a NumPy array, these names will be used to assign column names
+          for internal DataFrame processing and output feature naming. The length
+          must match `X.shape[1]`.
 
     show_fuzzy_range : bool, default=True
         If `True`, the names of the output fuzzy features will include the
@@ -159,11 +169,12 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
     columns\\_ : pandas.Index
         The column names of the input DataFrame (or names derived from
         `feature_names` if a NumPy array was provided) seen during `fit`.
+        This attribute ensures consistency between `fit` and `transform` calls.
 
-    fuzzy_bounds\\_ : dict
-        A dictionary storing the `(a, b, c)` parameters for the triangular
-        membership functions for each numerical column that was fuzzified.
-        Keys are original column names, values are tuples of floats.
+    fuzzy_bounds_ : dict
+        A dictionary storing the `(domain_min, a, b, c, domain_max)` parameters
+        for the triangular membership functions for each numerical column that
+        was fuzzified. Keys are original column names, values are tuples of floats.
 
     categorical_values\\_ : dict
         A dictionary storing the unique categories for each column specified in
@@ -177,7 +188,6 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
     See Also
     --------
     trimf : Triangular membership function.
-    sklearn.preprocessing.LabelEncoder : Encode target labels with values between 0 and n_classes-1.
     pandas.get_dummies : Convert categorical variable into dummy/indicator variables.
 
     Notes
@@ -216,9 +226,12 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         self.verbose = verbose
 
         # Validate tags length and type early for robustness.
-        if not isinstance(self.tags, (list, tuple)) or len(self.tags) != 3 or \
-           not all(isinstance(t, str) for t in self.tags):
-            raise ValueError("`tags` must be a list or tuple of three strings.")
+        if not isinstance(self.tags, (list, tuple)):
+            raise TypeError("`tags` must be a list or tuple.")
+        if len(self.tags) != 3:
+            raise ValueError(f"`tags` must contain exactly three strings, but found {len(self.tags)}.")
+        if not all(isinstance(t, str) for t in self.tags):
+            raise TypeError("All elements in `tags` must be strings.")
 
 
     def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Optional[np.ndarray] = None) \
@@ -317,7 +330,8 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                 values = X_df[col].dropna().values
                 if not np.issubdtype(values.dtype, np.number):
                     raise ValueError(f"Column '{col}' must contain numeric data for fuzzification, "
-                                     f"but found non-numeric type: {values.dtype}.")
+                                     f"but found non-numeric type: {values.dtype}. "
+                                     f"Consider adding it to `non_fuzzy` or converting its dtype.")
 
                 if values.size == 0:
                     # If column is empty, set default bounds for consistency

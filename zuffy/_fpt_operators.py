@@ -67,7 +67,7 @@ def _weighted_average(a: ArrayLike, b: ArrayLike, x: float) -> ArrayLike:
     """
     # Ensure x is a float for consistent calculations
     x = float(x)
-    return x * a + (1 - x) * b
+    return x * a + (1.0 - x) * b
 
 def _ordered_weighted_average(a: ArrayLike, b: ArrayLike, x: float) -> ArrayLike:
     """
@@ -89,7 +89,7 @@ def _ordered_weighted_average(a: ArrayLike, b: ArrayLike, x: float) -> ArrayLike
         The result of the OWA operation.
     """
     x = float(x)
-    return x * np.maximum(a, b) + (1 - x) * np.minimum(a, b)
+    return x * np.maximum(a, b) + (1.0 - x) * np.minimum(a, b)
 
 def _minimum(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
@@ -145,7 +145,7 @@ def _diluter(x0: ArrayLike) -> ArrayLike:
     """
     with np.errstate(divide='ignore', invalid='ignore'):
         # Ensure that negative values don't result in NaNs from sqrt
-        return np.where(x0 < 0, 0, x0**0.5)
+        return np.where(x0 < 0, 0.0, x0**0.5)
 
 def _diluter_power(x0: ArrayLike, power: float) -> ArrayLike:
     """
@@ -165,7 +165,7 @@ def _diluter_power(x0: ArrayLike, power: float) -> ArrayLike:
         The result of the dilution operation.
     """
     with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(x0 < 0, 0, x0**power)
+        return np.where(x0 < 0, 0.0, x0**power)
 
 def _concentrator(x0: ArrayLike) -> ArrayLike:
     """
@@ -240,7 +240,7 @@ def _fuzzy_or(a: ArrayLike, b: ArrayLike) -> ArrayLike:
 
 def _complement(x0: ArrayLike) -> ArrayLike:
     """
-    Calculates the fuzzy complement (1 - x0).
+    Calculates the fuzzy complement (1.0 - x0).
 
     Parameters
     ----------
@@ -252,7 +252,7 @@ def _complement(x0: ArrayLike) -> ArrayLike:
     np.ndarray or float
         The result of the fuzzy complement operation.
     """
-    return 1 - x0
+    return 1.0 - x0
 
 def _intensifier(x0: ArrayLike) -> ArrayLike:
     """
@@ -276,8 +276,8 @@ def _intensifier(x0: ArrayLike) -> ArrayLike:
             x0 < 0,
             0,
             np.where(x0 < 0.5,
-                     0.5**(1-n) * (x0**n),
-                     1 - 0.5**(1-n) * (1 - x0)**n
+                     0.5**(1.0-n) * (x0**n),
+                     1.0 - 0.5**(1.0-n) * (1.0 - x0)**n
             )
         )
 
@@ -303,8 +303,8 @@ def _diffuser(x0: ArrayLike) -> ArrayLike:
             x0 < 0,
             0,
             np.where(x0 < 0.5,
-                     0.5**(1 - 1/n) * x0**(1/n),
-                     1 - 0.5**(1 - 1/n) * (1 - x0)**(1/n)
+                     0.5**(1.0 - 1.0/n) * x0**(1.0/n),
+                     1.0 - 0.5**(1.0 - 1.0/n) * (1.0 - x0)**(1.0/n)
             )
         )
 
@@ -390,7 +390,7 @@ def _if_lt_else(x1: ArrayLike, x2: ArrayLike, x3: ArrayLike, x4: ArrayLike) -> A
 
 def _lukasiewicz_t_norm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
-    Calculates the Łukasiewicz t-norm: max(0, x0 + x1 - 1).
+    Calculates the Łukasiewicz t-norm: max(0, x0 + x1 - 1.0).
 
     Parameters
     ----------
@@ -404,7 +404,7 @@ def _lukasiewicz_t_norm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     np.ndarray or float
         The Łukasiewicz t-norm of x0 and x1.
     """
-    return np.maximum(0, x0 + x1 - 1)
+    return np.maximum(0, x0 + x1 - 1.0)
 
 def _lukasiewicz_t_conorm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     """
@@ -422,7 +422,7 @@ def _lukasiewicz_t_conorm(x0: ArrayLike, x1: ArrayLike) -> ArrayLike:
     np.ndarray or float
         The Łukasiewicz t-conorm of x0 and x1.
     """
-    return np.minimum(1, x0 + x1)
+    return np.minimum(1.0, x0 + x1)
 
 def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> ArrayLike:
     """
@@ -445,11 +445,7 @@ def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> Array
     Raises
     ------
     ValueError
-        If inputs x0 or x1 are not in the range [0, 1] or if lambda_param is negative.
-        Note: `np.any()` is used here for array inputs, but for element-wise fuzzy
-        operations, it's often assumed inputs are already valid from upstream.
-        Consider removing explicit checks if performance is critical and inputs
-        are guaranteed by the framework.
+        If lambda_param is negative.
     """
     # These checks are more robust if the inputs are single values or if
     # it's critical to halt execution for *any* out-of-range value in an array.
@@ -457,10 +453,10 @@ def _hamacher_t_norm(x0: ArrayLike, x1: ArrayLike, lambda_param: float) -> Array
     # by design, so explicit checks might be omitted for performance.
 
     if lambda_param < 0:
-        raise ValueError("Parameter lambda_param must be non-negative.")
+        raise ValueError("Hamacher t-norm parameter lambda_param must be non-negative.")
 
     numerator = x0 * x1
-    denominator = lambda_param + (1 - lambda_param) * (x0 + x1 - x0 * x1)
+    denominator = lambda_param + (1.0 - lambda_param) * (x0 + x1 - x0 * x1)
 
     # Handle potential division by zero for denominator == 0
     # This specifically addresses the case where lambda_param is 0 and x0+x1-x0*x1 is also 0
@@ -578,8 +574,9 @@ PRODUCT = functions.make_function(function=_product_t_norm,
                                   name='PRODUCT',
                                   arity=2)
 
-# --- Dynamic generation of fixed-parameter WA and OWA operators ---
-# This significantly reduces code duplication.
+# --- Dynamic Generation of Fixed-Parameter Averaging Operators ---
+# This section dynamically creates Weighted Average (WA) and Ordered Weighted Average (OWA)
+# operators with fixed parameters, significantly reducing code duplication.
 
 def _generate_wa_operator(param: float):
     """Generates a gplearn-compatible WA operator with a fixed weight."""
@@ -592,20 +589,24 @@ def _generate_owa_operator(param: float):
     """Generates a gplearn-compatible OWA operator with a fixed weight."""
     def owa_func(a: ArrayLike, b: ArrayLike) -> ArrayLike:
         return _ordered_weighted_average(a, b, param)
-    owa_func.__name__ = f'_wa_op_param_{param}'.replace('.', '_')
+    owa_func.__name__ = f'_owa_op_param_{param}'.replace('.', '_')
     return owa_func
 
 # Create WA_P1 to WA_P9
 for i in range(1, 10):
     param_val = round(i * 0.1, 1) # Calculate parameter value (0.1, 0.2, ..., 0.9)
     # Define the name as a string and use globals() to assign the dynamically created function
-    globals()[f'WA_P{i}'] = functions.make_function(function=_generate_wa_operator(param_val),
-                                                  name=f'WA_P{i}',
-                                                  arity=2)
+    globals()[f'WA_P{i}'] = functions.make_function(
+        function=_generate_wa_operator(param_val),
+        name=f'WA_P{i}',
+        arity=2
+        )
 
 # Create OWA_P1 to OWA_P9
 for i in range(1, 10):
     param_val = round(i * 0.1, 1) # Calculate parameter value (0.1, 0.2, ..., 0.9)
-    globals()[f'OWA_P{i}'] = functions.make_function(function=_generate_owa_operator(param_val),
-                                                   name=f'OWA_P{i}',
-                                                   arity=2)
+    globals()[f'OWA_P{i}'] = functions.make_function(
+        function=_generate_owa_operator(param_val),
+        name=f'OWA_P{i}',
+        arity=2
+        )

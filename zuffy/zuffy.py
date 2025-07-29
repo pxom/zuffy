@@ -1,8 +1,6 @@
 """
 This module contains the Zuffy Classifier and supporting methods and functions.
-
 """
-
 
 import numbers # for scikit learn Interval
 import numpy as np
@@ -17,15 +15,16 @@ from gplearn.genetic import SymbolicClassifier
 from ._fpt_operators import COMPLEMENT, MAXIMUM, MINIMUM
 
 class ZuffyClassifier(ClassifierMixin, BaseEstimator):
-    """A Fuzzy Pattern Tree Classifier which uses genetic programming to infer the model structure.
+    """A Fuzzy Pattern Tree Classifier which uses genetic programming to infer the model 
+    structure, typically with fuzzy operators.
 
     This classifier wraps ``gplearn.genetic.SymbolicClassifier`` and handles multi-class 
     classification using ``sklearn.multiclass.OneVsRestClassifier`` or 
     ``sklearn.multiclass.OneVsOneClassifier``. It uses the OneVsRestClassifier classifier to 
     handle multi-class classifications by default.
 
-    These parameters are passed through to the gplearn SymbolicClassifier and further documentation
-    is available on that at
+    Most parameters are passed directly to the `gplearn.genetic.SymbolicClassifier` and further
+    documentation is available on that at
     https://gplearn.readthedocs.io/en/stable/reference.html#gplearn.genetic.SymbolicClassifier.
 
     Parameters
@@ -247,8 +246,8 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         ):
         """Initialize ZuffyClassifier.
 
-        All parameters are passed directly to the underlying `gplearn.genetic.SymbolicClassifier`
-        or `sklearn.multiclass` wrappers. Refer to their respective documentations for
+        Most parameters are passed directly to the underlying `gplearn.genetic.SymbolicClassifier`
+        or `sklearn.multiclass` wrappers. Refer to their respective documentation for
         detailed explanations.
         """
 
@@ -380,7 +379,7 @@ class ZuffyClassifier(ClassifierMixin, BaseEstimator):
         check_is_fitted(self)
 
         # Input validation for X. Use check_array for prediction inputs.
-        X = self._validate_data(X, reset=False) # `reset=False` to preserve `n_features_in_` etc.
+        X = self._validate_data(X, reset=False) # `reset=False` to preserve `n_features_in_`
 
         return self.multi_.predict(X)
 
