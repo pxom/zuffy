@@ -60,6 +60,5 @@ graphviz_tree(
 plot_iteration_performance(
     iter_perf,
     title='Iteration Performance: Example5',
-    best_iter=trained_iterator_results.best_iteration_index_,
     output_filename='example5_iter_perf'
     )

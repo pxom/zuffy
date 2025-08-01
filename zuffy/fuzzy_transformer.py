@@ -101,7 +101,7 @@ def convert_to_numeric(df: pd.DataFrame, target: str) ->Tuple[List[str], pd.Data
     """
     if target not in df.columns:
         raise ValueError(f"Target column '{target}' not found in the DataFrame.")
-    
+
     le = LabelEncoder()
     # Apply LabelEncoder to the target column and store original classes
     df[target] = le.fit_transform(df[target])
@@ -229,7 +229,8 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         if not isinstance(self.tags, (list, tuple)):
             raise TypeError("`tags` must be a list or tuple.")
         if len(self.tags) != 3:
-            raise ValueError(f"`tags` must contain exactly three strings, but found {len(self.tags)}.")
+            raise ValueError(f"`tags` must contain exactly three strings, "
+                             f"but found {len(self.tags)}.")
         if not all(isinstance(t, str) for t in self.tags):
             raise TypeError("All elements in `tags` must be strings.")
 

@@ -1,6 +1,6 @@
 [project]
 name = "zuffy"
-version = "0.4"
+version = "0.5"
 authors = [{ name="PXOM", email="zuffy@mahoonium.ie" },]
 description = "Zuffy is a sklearn compatible open source python library that uses GP to induce Fuzzy Pattern Trees"
 readme = "README.md"

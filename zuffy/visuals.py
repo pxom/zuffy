@@ -11,7 +11,6 @@ This module provides utilities to:
 
 import html
 import numbers
-import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import graphviz
@@ -542,7 +541,8 @@ def graphviz_tree(
     },
     prefer_skip_nested_validation=True
 )
-def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: int = 0,
+def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None,
+                   skip_first_n: int = 0,
                    output_filename: Optional[str] = None) -> None:
     """
     Plots the evolution metrics (tree length, fitness, generation duration) for
@@ -607,7 +607,7 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
     num_estimators = len(model.multi_.estimators_)
     # Create a figure with dynamic height based on the number of estimators.
     fig = plt.figure(figsize=(11, 2.5 * num_estimators))
-    fig.suptitle(f'Evolution Performance', fontsize=14)
+    fig.suptitle('Evolution Performance', fontsize=14)
 
     xlabel = 'Generation'
     if skip_first_n > 0:
@@ -632,9 +632,11 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
         ax1 = fig.add_subplot(num_estimators, num_cols, idx * num_cols + 1)
         ax1.set_title(f'Class: {target_class_names[idx]}\nTree Length '
                       f'(Final Avg: {run_details["average_length"][-1]:.2f})')
-        ax1.plot(run_details['generation'][skip_first_n:], run_details['average_length'][skip_first_n:],
+        ax1.plot(run_details['generation'][skip_first_n:],
+                 run_details['average_length'][skip_first_n:],
                  color='tab:blue', label='Average')
-        ax1.plot(run_details['generation'][skip_first_n:], run_details['best_length'][skip_first_n:],
+        ax1.plot(run_details['generation'][skip_first_n:],
+                 run_details['best_length'][skip_first_n:],
                  color='tab:orange', label='Best')
         #ax1.set_xlabel('Generation')
         ax1.set_ylabel('Length')
@@ -644,9 +646,11 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
         ax2 = fig.add_subplot(num_estimators, num_cols, idx * num_cols + 2)
         ax2.set_title(f'Fitness (smaller is better)\n'
                       f'Final Best: {run_details["best_fitness"][-1]:.3f}')
-        ax2.plot(run_details['generation'][skip_first_n:], run_details['average_fitness'][skip_first_n:],
+        ax2.plot(run_details['generation'][skip_first_n:],
+                 run_details['average_fitness'][skip_first_n:],
                  color='tab:purple', label='Average')
-        ax2.plot(run_details['generation'][skip_first_n:], run_details['best_fitness'][skip_first_n:],
+        ax2.plot(run_details['generation'][skip_first_n:],
+                 run_details['best_fitness'][skip_first_n:],
                  color='tab:green', label='Best')
         #ax2.set_xlabel('Generation')
         ax2.set_ylabel('Fitness')
@@ -660,7 +664,8 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
         else:
             avg_gen_time = 0.0 # Default if no timing data
         ax3.set_title(f'Generation Duration\nAverage: {avg_gen_time:.4f}s')
-        ax3.plot(run_details['generation'][skip_first_n:], run_details['generation_time'][skip_first_n:], color='#ffcc33')
+        ax3.plot(run_details['generation'][skip_first_n:],
+                 run_details['generation_time'][skip_first_n:], color='#ffcc33')
         #ax3.set_xlabel('Generation')
         ax3.set_ylabel('Duration (s)')
 
@@ -680,8 +685,9 @@ def plot_evolution(model: Any, target_class_names: Optional[List[str]] = None, s
     },
     prefer_skip_nested_validation=True
 )
-def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[str]] = None, skip_first_n: int = 0,
-                                      output_filename: Optional[str] = None) -> None:
+def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[str]] = None,
+                                skip_first_n: int = 0,
+                                output_filename: Optional[str] = None) -> None:
     """
     Plots the evolution metrics (tree length, fitness, generation duration) for
     all sub-estimators in a Fuzzy Pattern Tree model over generations,
@@ -736,9 +742,9 @@ def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[st
     if len(target_class_names) < len(model.multi_.estimators_):
         raise ValueError(f'Insufficient `target_class_names` ({len(target_class_names)}) supplied'
                          f' to represent each of the {len(model.multi_.estimators_)} classes.')
-    target_class_names = sanitise_names(target_class_names) # Sanitise names for plot titles and legends.
+    # Sanitise names for plot titles and legends.
+    target_class_names = sanitise_names(target_class_names)
 
-    num_estimators = len(model.multi_.estimators_)
     all_run_details = []
 
     for idx, estimator in enumerate(model.multi_.estimators_):
@@ -754,7 +760,8 @@ def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[st
     # --- Plotting Setup ---
     # Create a figure with 3 subplots, arranged vertically, sharing the x-axis (generations).
     fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True) # Adjusted figsize for 3 plots
-    fig.suptitle('Evolution Performance Across All Classes', fontsize=16, y=0.95) # Global title for the figure
+    fig.suptitle('Evolution Performance Across All Classes',
+                 fontsize=16, y=0.95) # Global title for the figure
 
     # Common x-axis label, adjusted for skipped generations.
     xlabel = 'Generation'
@@ -768,9 +775,11 @@ def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[st
     ax0.set_title('Tree Length Evolution (Average and Best)')
     ax0.set_ylabel('Length')
     for i, run_details in enumerate(all_run_details):
-        ax0.plot(run_details['generation'][skip_first_n:], run_details['average_length'][skip_first_n:],
+        ax0.plot(run_details['generation'][skip_first_n:],
+                 run_details['average_length'][skip_first_n:],
                  label=f'Class: {target_class_names[i]} (Avg)', linestyle='-')
-        ax0.plot(run_details['generation'][skip_first_n:], run_details['best_length'][skip_first_n:],
+        ax0.plot(run_details['generation'][skip_first_n:],
+                 run_details['best_length'][skip_first_n:],
                  label=f'Class:{target_class_names[i]} (Best)', linestyle='--')
     ax0.legend(loc='best', fontsize='small', ncol=2) # Use 2 columns for legend if many classes
     ax0.grid(True, linestyle='--', alpha=0.6) # Add a grid for readability
@@ -780,9 +789,11 @@ def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[st
     ax1.set_title('Fitness Evolution (Average and Best, smaller is better)')
     ax1.set_ylabel('Fitness')
     for i, run_details in enumerate(all_run_details):
-        ax1.plot(run_details['generation'][skip_first_n:], run_details['average_fitness'][skip_first_n:],
+        ax1.plot(run_details['generation'][skip_first_n:],
+                 run_details['average_fitness'][skip_first_n:],
                  label=f'Class: {target_class_names[i]} (Avg)', linestyle='-')
-        ax1.plot(run_details['generation'][skip_first_n:], run_details['best_fitness'][skip_first_n:],
+        ax1.plot(run_details['generation'][skip_first_n:],
+                 run_details['best_fitness'][skip_first_n:],
                  label=f'Class: {target_class_names[i]} (Best)', linestyle='--')
     ax1.legend(loc='best', fontsize='small', ncol=2)
     ax1.grid(True, linestyle='--', alpha=0.6)
@@ -792,7 +803,8 @@ def plot_evolution_consolidated(model: Any, target_class_names: Optional[List[st
     ax2.set_title('Generation Time')
     ax2.set_ylabel('Duration (seconds)')
     for i, run_details in enumerate(all_run_details):
-        ax2.plot(run_details['generation'][skip_first_n:], run_details['generation_time'][skip_first_n:],
+        ax2.plot(run_details['generation'][skip_first_n:],
+                 run_details['generation_time'][skip_first_n:],
                  label=f'Class: {target_class_names[i]}')
     ax2.legend(loc='best', fontsize='small')
     ax2.grid(True, linestyle='--', alpha=0.6)
@@ -884,10 +896,8 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
     # Sanitise feature names for use as plot labels
     sanitised_features = sanitise_names(features)
 
-    start_time = time.time()
     # `permutation_importance` requires a fitted estimator and test data
     result = permutation_importance(reg, X_test, y_test, n_repeats=n_repeats, n_jobs=n_jobs)
-    elapsed_time = time.time() - start_time
 
     print('\n*** FEATURE IMPORTANCES (Permutation) ***')
     imp_feat_dict: Dict[str, List[Union[float, int]]] = {}
@@ -940,7 +950,6 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
 @validate_params(
     {
         "iter_perf": ["array-like"],
-        "best_iter": [None, numbers.Integral],
         "title": [None, str],
         "output_filename": [None, str],
         "col_iter_acc": [None, str],
@@ -949,9 +958,10 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
     },
     prefer_skip_nested_validation=True
 )
-def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] = None,
+def plot_iteration_performance(iter_perf: np.ndarray,
                 title: Optional[str] = "Iteration Performance",
-                output_filename: Optional[str] = None, col_iter_acc: Optional[str] = "#1c9fea",
+                output_filename: Optional[str] = None,
+                col_iter_acc: Optional[str] = "#1c9fea",
                 col_best_iter: Optional[str] = "#386938",
                 col_tree_size: Optional[str] = "#680818") -> None:
     """
@@ -971,9 +981,6 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
         and columns contain performance metrics. It's expected to have columns
         for iteration accuracy and tree size, as specified by `col_iter_acc`
         and `col_tree_size` respectively.
-    best_iter : int, optional
-        The index of the best iteration to highlight on the plot. If `None`,
-        no specific iteration is highlighted. Defaults to `None`.
     title : str, optional
         The title for the plot. If `None`, a default title 'Iteration Performance'
         will be used. Defaults to `None`.
@@ -994,7 +1001,6 @@ def plot_iteration_performance(iter_perf: np.ndarray, best_iter: Optional[int] =
         The mean value of the accuracies.
     std_dev_y1 : float
         The standard deviation of the accuracies.
-
 
     """
 
