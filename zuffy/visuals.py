@@ -884,13 +884,10 @@ def show_feature_importance(reg: Any, X_test: np.ndarray, y_test: np.ndarray,
     # Sanitise feature names for use as plot labels
     sanitised_features = sanitise_names(features)
 
-    print(f"Calculating permutation importances with {n_repeats} repeats and "
-          f"{n_jobs if n_jobs is not None else 1} jobs...")
     start_time = time.time()
     # `permutation_importance` requires a fitted estimator and test data
     result = permutation_importance(reg, X_test, y_test, n_repeats=n_repeats, n_jobs=n_jobs)
     elapsed_time = time.time() - start_time
-    print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
 
     print('\n*** FEATURE IMPORTANCES (Permutation) ***')
     imp_feat_dict: Dict[str, List[Union[float, int]]] = {}

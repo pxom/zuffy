@@ -85,3 +85,7 @@ zuffy/_version.py
 
 # pom Jupyter notebooks
 .ipynb_checkpoints/
+
+# test files
+util_dt.py
+zuffy_datasets.py

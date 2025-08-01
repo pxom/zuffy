@@ -171,10 +171,10 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
         `feature_names` if a NumPy array was provided) seen during `fit`.
         This attribute ensures consistency between `fit` and `transform` calls.
 
-    fuzzy_bounds_ : dict
-        A dictionary storing the `(domain_min, a, b, c, domain_max)` parameters
-        for the triangular membership functions for each numerical column that
-        was fuzzified. Keys are original column names, values are tuples of floats.
+    fuzzy_bounds\\_ : dict
+        A dictionary storing the `(a, b, c)` parameters for the triangular
+        membership functions for each numerical column that was fuzzified.
+        Keys are original column names, values are tuples of floats.
 
     categorical_values\\_ : dict
         A dictionary storing the unique categories for each column specified in
@@ -309,7 +309,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
 
         self.columns_ = X_df.columns
         # Store (min, mid, max) for numeric columns
-        self.fuzzy_bounds_: Dict[str, Tuple[float, float, float, float, float]] = {}
+        self.fuzzy_bounds_: Dict[str, Tuple[float, float, float]] = {}
         # Store categories for one-hot consistency
         self.categorical_values_: Dict[str, List[Any]] = {}
         self.feature_names_out_: List[str] = [] # Initialize output feature names
@@ -334,31 +334,21 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                                      f"Consider adding it to `non_fuzzy` or converting its dtype.")
 
                 if values.size == 0:
-                    # If column is empty, set default bounds for consistency
-                    domain_min, a, b, c, domain_max = 0.0, 0.0, 0.0, 0.0, 0.0
+                    # If column is empty, set default bounds (e.g., for consistency)
+                    a, b, c = 0.0, 0.0, 0.0
                 else:
-                    domain_min = float(np.min(values))
-                    domain_max = float(np.max(values))
-                    range_span = domain_max - domain_min
+                    a = float(np.min(values))
+                    c = float(np.max(values))
+                    b = a + (c - a) / 2.0 # Mid-point of the range
+                self.fuzzy_bounds_[col] = (a, b, c)
 
-                    if range_span == 0:
-                        a = domain_min
-                        b = domain_min
-                        c = domain_min
-                    else:
-                        a = domain_min + range_span * 0.25
-                        b = domain_min + range_span * 0.50
-                        c = domain_min + range_span * 0.75
-
-                # Store all 5 crucial points: domain_min, a, b, c, domain_max
-                self.fuzzy_bounds_[col] = (domain_min, a, b, c, domain_max)
-
+                # Add names for the three fuzzy features (low, med, high)
                 if self.show_fuzzy_range:
                     self.feature_names_out_.extend([
-                        f"{self.tags[0]} {col}| ({domain_min:.2f} to {b:.2f})",
-                        f"{self.tags[1]} {col}| ({a:.2f} to {c:.2f})",
-                        f"{self.tags[2]} {col}| ({b:.2f} to {domain_max:.2f})"
-                    ])                
+                        f"{self.tags[0]} {col}| ({a:.2f} to {b:.2f})",
+                        f"{self.tags[1]} {col}| ({a:.2f} to {b:.2f} to {c:.2f})",
+                        f"{self.tags[2]} {col}| ({b:.2f} to {c:.2f})"
+                    ])
                 else:
                     self.feature_names_out_.extend([
                         f"{self.tags[0]} {col}",
@@ -367,8 +357,7 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                     ])
 
                 if self.verbose:
-                    print(f"Fitted fuzzy bounds for '{col}': min={domain_min:.2f}, a={a:.2f}, "
-                          f"b={b:.2f}, c={c:.2f}, max={domain_max:.2f}")
+                    print(f"Fitted fuzzy bounds for '{col}': a={a:.2f}, b={b:.2f}, c={c:.2f}")
 
         return self
 
@@ -450,34 +439,34 @@ class FuzzyTransformer(BaseEstimator, TransformerMixin):
                         transformed_features.append(np.zeros((X.shape[0], 1), dtype=int))
             else:
                 # Apply fuzzy transformation using learned bounds.
-                domain_min, a, b, c, domain_max = self.fuzzy_bounds_[col]
+                a, b, c = self.fuzzy_bounds_[col]
 
                 # Check for out-of-bounds values if oob_check is enabled.
                 if self.oob_check:
-                    if np.any(values < domain_min):
-                        out_of_bounds_vals = values[values < domain_min]
+                    if np.any(values < a):
+                        out_of_bounds_vals = values[values < a]
                         raise ValueError(
                             f"The '{col}' feature has values "
                             f"({np.array2string(out_of_bounds_vals, max_line_width=100)}) "
-                            f"that are less than the fitted minimum ({domain_min:.2f}). Set `oob_check=False` to "
+                            f"that are less than 'a' ({a:.2f}). Set `oob_check=False` to "
                             f"ignore this warning."
                         )
-                    if np.any(values > domain_max): # Check against the fitted overall maximum
-                         out_of_bounds_vals = values[values > domain_max]
-                         raise ValueError(
+                    if np.any(values > c):
+                        out_of_bounds_vals = values[values > c]
+                        raise ValueError(
                             f"The '{col}' feature has values "
                             f"({np.array2string(out_of_bounds_vals, max_line_width=100)}) "
-                            f"that are greater than the fitted maximum ({domain_max:.2f}). Set `oob_check=False` to "
+                            f"that are greater than 'c' ({c:.2f}). Set `oob_check=False` to "
                             f"ignore this warning."
-                            )
+                        )
 
                 # Calculate fuzzy membership values for low, medium, and high bands.
                 # 'low': ramps from 1 at domain_min to 0 at 'b' (midpoint)
-                lo = trimf(values, [domain_min, domain_min, b])
+                lo = trimf(values, [a, a, b])
                 # 'medium': standard triangle from 'a' to 'c' with peak at 'b'
                 md = trimf(values, [a, b, c])
                 # 'high': ramps from 0 at 'b' (midpoint) to 1 at domain_max
-                hi = trimf(values, [b, domain_max, domain_max])
+                hi = trimf(values, [b, c, c])
                 transformed_features.append(np.column_stack([lo, md, hi]))
 
         # Concatenate all transformed features horizontally to form the final output array.
